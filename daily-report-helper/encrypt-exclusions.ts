@@ -1,6 +1,6 @@
 import { Encrypter } from "age-encryption";
 import {
-  handleFileError,
+  handleFileNotFoundError,
   loadConfig,
   shouldProceedWithWrite,
 } from "./exclusions-utils.ts";
@@ -24,7 +24,7 @@ async function main() {
       );
     }
   } catch (error) {
-    handleFileError(error, config.rawFilePath);
+    handleFileNotFoundError(error, config.rawFilePath);
   }
 }
 

@@ -1,6 +1,6 @@
 import { Decrypter } from "age-encryption";
 import {
-  handleFileError,
+  handleFileNotFoundError,
   loadConfig,
   shouldProceedWithWrite,
 } from "./exclusions-utils.ts";
@@ -14,15 +14,15 @@ async function main() {
 
   try {
     const decrypter = initializeDecrypter(config.envVars.passphrase);
-    const cypherBuffer = await Deno.readFile(config.rawFilePath);
+    const cypherBuffer = await Deno.readFile(config.cryptedFilePath);
     const plainTextData = await decrypter.decrypt(cypherBuffer);
 
-    if (await shouldProceedWithWrite(config.cryptedFilePath)) {
-      await Deno.writeFile(config.cryptedFilePath, plainTextData);
-      console.log(`File successfully saved: ${config.cryptedFilePath}`);
+    if (await shouldProceedWithWrite(config.rawFilePath)) {
+      await Deno.writeFile(config.rawFilePath, plainTextData);
+      console.log(`File successfully saved: ${config.rawFilePath}`);
     }
   } catch (error) {
-    handleFileError(error, config.rawFilePath);
+    handleFileNotFoundError(error, config.cryptedFilePath);
   }
 }
 

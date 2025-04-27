@@ -52,7 +52,7 @@ export async function shouldProceedWithWrite(
 /**
  * Handle errors appropriately
  */
-export function handleFileError(error: unknown, inputFile: string): never {
+export function handleFileNotFoundError(error: unknown, inputFile: string): never {
   if (error instanceof Deno.errors.NotFound) {
     console.error(`Error: File '${inputFile}' not found.`);
     Deno.exit(1);
