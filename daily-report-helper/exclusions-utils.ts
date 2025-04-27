@@ -1,7 +1,7 @@
 import { exists } from "jsr:@std/fs/exists";
 import { Config, Exclusions, exclusionsSchema } from "./types.ts";
 import JSON5 from "json5";
-import { parse } from "jsr:@std/flags";
+import { parseArgs } from "jsr:@std/cli/parse-args";
 
 /**
  * Load and validate environment settings
@@ -12,7 +12,7 @@ export function loadConfig(): Config {
   const passphrase = loadPassphrase();
 
   // Parse command line arguments for start and end dates
-  const args = parse(Deno.args, {
+  const args = parseArgs(Deno.args, {
     string: ["startDate", "endDate"],
   });
 
