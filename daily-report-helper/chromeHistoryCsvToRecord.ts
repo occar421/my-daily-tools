@@ -1,5 +1,5 @@
 import { parse as parseCsv } from "jsr:@std/csv";
-import type { ReportRecord } from "./types.ts";
+import type { Exclusions, ReportRecord } from "./types.ts";
 
 const LOOK_BACK_RECORDS = 10;
 const LOOK_BACK_RANGE = [...Array(LOOK_BACK_RECORDS).keys()].map((x) => x + 1);
@@ -9,7 +9,10 @@ const LOOK_BACK_RANGE = [...Array(LOOK_BACK_RECORDS).keys()].map((x) => x + 1);
  * @param text CSV text
  * @returns Array of extracted Record type objects
  */
-export function chromeHistoryCsvToRecord(text: string): ReportRecord[] {
+export function chromeHistoryCsvToRecord(
+  text: string,
+  exclusions: Exclusions,
+): ReportRecord[] {
   const records: ReportRecord[] = [];
 
   const csv: Record<"date" | "time" | "title" | "url", string>[] = parseCsv(

@@ -1,15 +1,5 @@
 import { exists } from "jsr:@std/fs/exists";
-
-/**
- * Application configuration information
- */
-export interface Config {
-  rawFilePath: string;
-  cryptedFilePath: string;
-  envVars: {
-    passphrase: string;
-  };
-}
+import { Config } from "./types.ts";
 
 /**
  * Load and validate environment settings
@@ -52,7 +42,10 @@ export async function shouldProceedWithWrite(
 /**
  * Handle errors appropriately
  */
-export function handleFileNotFoundError(error: unknown, inputFile: string): never {
+export function handleFileNotFoundError(
+  error: unknown,
+  inputFile: string,
+): never {
   if (error instanceof Deno.errors.NotFound) {
     console.error(`Error: File '${inputFile}' not found.`);
     Deno.exit(1);

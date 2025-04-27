@@ -5,6 +5,7 @@
   },
   "imports": {
     "@std/assert": "jsr:@std/assert@1",
-    "age-encryption": "npm:age-encryption@^0.2.3"
+    "age-encryption": "npm:age-encryption@^0.2.3",
+    "json5": "npm:json5@^2.2.3"
   }
 }
