@@ -3,6 +3,103 @@ import { Config, Exclusions, exclusionsSchema } from "./types.ts";
 import JSON5 from "json5";
 import { parseArgs } from "jsr:@std/cli/parse-args";
 
+// Constant for the hour offset used for date calculations
+const HOUR_OFFSET = 7;
+
+/**
+ * Validate and create a Date object from a date string
+ * @param dateStr Date string in YYYY-MM-DD format
+ * @returns Date object or undefined if dateStr is undefined
+ */
+function createDateFromString(dateStr?: string): Date | undefined {
+  if (!dateStr) {
+    return undefined;
+  }
+
+  // Validate that date string doesn't contain time components
+  if (dateStr.includes("T") || dateStr.includes(":")) {
+    throw new Error(`Date should only contain date (YYYY-MM-DD), not time`);
+  }
+
+  return new Date(dateStr);
+}
+
+/**
+ * Convert a date string to epoch timestamp for start date
+ * @param dateStr Date string in YYYY-MM-DD format
+ * @returns Epoch timestamp or undefined if dateStr is undefined
+ */
+function getStartEpochFromDateString(dateStr?: string): number | undefined {
+  const date = createDateFromString(dateStr);
+  if (!date) {
+    return undefined;
+  }
+
+  // For start date: set to HOUR_OFFSET:00:00.000
+  date.setHours(HOUR_OFFSET, 0, 0, 0);
+  return date.getTime();
+}
+
+/**
+ * Convert a date string to epoch timestamp for end date
+ * @param dateStr Date string in YYYY-MM-DD format
+ * @returns Epoch timestamp or undefined if dateStr is undefined
+ */
+function getEndEpochFromDateString(dateStr?: string): number | undefined {
+  const date = createDateFromString(dateStr);
+  if (!date) {
+    return undefined;
+  }
+
+  // For end date: set to next day at HOUR_OFFSET:00:00.000 minus 1ms
+  date.setDate(date.getDate() + 1);
+  date.setHours(HOUR_OFFSET, 0, 0, 0);
+  return date.getTime() - 1; // Subtract 1ms to make it 06:59:59.999
+}
+
+/**
+ * Parse date range from command line arguments
+ * @returns Object containing start and end epoch timestamps
+ */
+function parseDateRangeFromArgs(): { startEpoch?: number; endEpoch?: number } {
+  // Parse command line arguments for start and end dates
+  const args = parseArgs(Deno.args, {
+    string: ["startDate", "endDate"],
+  });
+
+  // Convert date strings to epoch timestamps using the specific functions
+  const startEpoch = getStartEpochFromDateString(args.startDate);
+  const endEpoch = getEndEpochFromDateString(args.endDate);
+
+  // Log the date range being used for filtering
+  if (startEpoch !== undefined || endEpoch !== undefined) {
+    console.log("Filtering records by date range:");
+    if (startEpoch !== undefined) {
+      const startDateStr = new Date(startEpoch).toISOString().split("T")[0];
+      console.log(
+        `  Start date: ${startDateStr} (from ${HOUR_OFFSET.toString().padStart(2, '0')}:00:00)`,
+      );
+    }
+    if (endEpoch !== undefined) {
+      // For end date, we need to show the original date (not the next day)
+      const endDate = new Date(endEpoch);
+      endDate.setDate(endDate.getDate() - 1); // Go back to original date
+      const endDateStr = endDate.toISOString().split("T")[0];
+      const prevHour = (HOUR_OFFSET - 1).toString().padStart(2, '0');
+      console.log(
+        `  End date: ${endDateStr} (until ${prevHour}:59:59.999 of the next day)`,
+      );
+    }
+  } else {
+    console.log("No date range specified, showing all records.");
+  }
+
+  return {
+    startEpoch,
+    endEpoch,
+  };
+}
+
 /**
  * Load and validate environment settings
  */
@@ -11,45 +108,8 @@ export function loadConfig(): Config {
   const cryptedFilePath = `${rawFilePath}.age`;
   const passphrase = loadPassphrase();
 
-  // Parse command line arguments for start and end dates
-  const args = parseArgs(Deno.args, {
-    string: ["startDate", "endDate"],
-  });
-
-  // Convert date strings to epoch timestamps
-  let startEpoch: number | undefined = undefined;
-  let endEpoch: number | undefined = undefined;
-
-  if (args.startDate) {
-    const startDate = new Date(args.startDate);
-    startEpoch = startDate.getTime();
-  }
-
-  if (args.endDate) {
-    const endDate = new Date(args.endDate);
-    // Set to end of day (23:59:59.999) to include the entire end date
-    endDate.setHours(23, 59, 59, 999);
-    endEpoch = endDate.getTime();
-  }
-
-  // Log the date range being used for filtering
-  if (startEpoch !== undefined || endEpoch !== undefined) {
-    console.log("Filtering records by date range:");
-    if (startEpoch !== undefined) {
-      console.log(
-        "  Start date:",
-        new Date(startEpoch).toISOString().split("T")[0],
-      );
-    }
-    if (endEpoch !== undefined) {
-      console.log(
-        "  End date:",
-        new Date(endEpoch).toISOString().split("T")[0],
-      );
-    }
-  } else {
-    console.log("No date range specified, showing all records.");
-  }
+  // Get date range from command line arguments
+  const { startEpoch, endEpoch } = parseDateRangeFromArgs();
 
   return {
     rawFilePath,
@@ -106,7 +166,7 @@ export function handleFileNotFoundError(
 /**
  * Load and validate passphrase from environment
  */
-export function loadPassphrase(): string {
+function loadPassphrase(): string {
   const passphrase = Deno.env.get("PASSPHRASE");
   if (!passphrase) {
     throw new Error("Environment variable 'PASSPHRASE' is not set");
