@@ -70,7 +70,9 @@ function parseDateRangeFromArgs(): { startEpoch: number; endEpoch?: number } {
 
   // Check if startDate is provided
   if (!args.startDate) {
-    throw new Error("startDate is required. Please provide a start date in YYYY-MM-DD format.");
+    throw new Error(
+      "startDate is required. Please provide a start date in YYYY-MM-DD format.",
+    );
   }
 
   // Convert date strings to epoch timestamps using the specific functions
@@ -79,24 +81,27 @@ function parseDateRangeFromArgs(): { startEpoch: number; endEpoch?: number } {
 
   // Ensure startEpoch is defined (this should always be true if args.startDate is provided)
   if (startEpoch === undefined) {
-    throw new Error("Failed to parse startDate. Please provide a valid date in YYYY-MM-DD format.");
+    throw new Error(
+      "Failed to parse startDate. Please provide a valid date in YYYY-MM-DD format.",
+    );
   }
 
   // Log the date range being used for filtering
   console.log("Filtering records by date range:");
-  const startDateStr = new Date(startEpoch).toISOString().split("T")[0];
+  // Use the original input date string instead of converting from epoch to avoid timezone issues
+  const startDateStr = args.startDate;
+  const startTimeStr = `${HOUR_OFFSET.toString().padStart(2, "0")}:00:00`;
   console.log(
-    `  Start date: ${startDateStr} (from ${HOUR_OFFSET.toString().padStart(2, '0')}:00:00)`,
+    `  Start date: ${startDateStr} (from ${startTimeStr})`,
   );
 
-  if (endEpoch !== undefined) {
-    // For end date, we need to show the original date (not the next day)
-    const endDate = new Date(endEpoch);
-    endDate.setDate(endDate.getDate() - 1); // Go back to original date
-    const endDateStr = endDate.toISOString().split("T")[0];
-    const prevHour = (HOUR_OFFSET - 1).toString().padStart(2, '0');
+  if (endEpoch !== undefined && args.endDate) {
+    // Use the original input date string instead of converting from epoch to avoid timezone issues
+    const endDateStr = args.endDate;
+    const prevHour = (HOUR_OFFSET - 1).toString().padStart(2, "0");
+    const endTimeStr = `${prevHour}:59:59.999`;
     console.log(
-      `  End date: ${endDateStr} (until ${prevHour}:59:59.999 of the next day)`,
+      `  End date: ${endDateStr} (until ${endTimeStr} of the next day)`,
     );
   }
 
