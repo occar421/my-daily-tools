@@ -46,7 +46,7 @@ export function chromeHistoryCsvToRecord(
     // Skip if title is the same as a recent one
     if (
       LOOK_BACK_RANGE.some((x) =>
-        records.at(-x)?.title.toUpperCase() === title.toUpperCase()
+        normalize(records.at(-x)?.title) === normalize(title)
       )
     ) {
       continue;
@@ -57,9 +57,14 @@ export function chromeHistoryCsvToRecord(
       continue;
     }
 
+    // Skip based on URL substrings from exclusions
+    if (exclusions.urlContains?.some((prefix) => row.url.includes(prefix))) {
+      continue;
+    }
+
     // Check for Notion IDs
     const notionMatch = row.url.match(
-      /https:\/\/www.notion.so\/.*?[\-\/]([0-9a-f]{32})/,
+      /https:\/\/www.notion.so\/.*?-?([0-9a-f]{32})/,
     );
     if (notionMatch) {
       const notionId = notionMatch[1];
@@ -79,7 +84,7 @@ export function chromeHistoryCsvToRecord(
       // Skip if the Notion title matches any of the exclusion patterns
       if (
         exclusions.notionTitleContains?.some((pattern) =>
-          title.toLowerCase().includes(pattern.toLowerCase())
+          normalize(title).includes(normalize(pattern))
         )
       ) {
         continue;
@@ -116,4 +121,8 @@ export function chromeHistoryCsvToRecord(
   }
 
   return records;
+}
+
+function normalize(text: string | undefined): string {
+  return text?.replace(/[\uE000-\uF8FF]/g, "").toUpperCase() ?? "";
 }
