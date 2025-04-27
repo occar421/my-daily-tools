@@ -5,9 +5,9 @@ const LOOK_BACK_RECORDS = 10;
 const LOOK_BACK_RANGE = [...Array(LOOK_BACK_RECORDS).keys()].map((x) => x + 1);
 
 /**
- * CSVテキストからレコードを作成する関数
- * @param text CSVテキスト
- * @returns 抽出されたRecord型オブジェクトの配列
+ * Function to create records from CSV text
+ * @param text CSV text
+ * @returns Array of extracted Record type objects
  */
 export function chromeHistoryCsvToRecord(text: string): ReportRecord[] {
   const records: ReportRecord[] = [];
@@ -21,23 +21,23 @@ export function chromeHistoryCsvToRecord(text: string): ReportRecord[] {
   );
 
   for (const row of csv) {
-    // タイトルが無い場合は除く
+    // Skip if title is empty
     if (row.title.trim() === "") {
       continue;
     }
 
     let title = row.title.trim();
-    // Notion ではタイトルから通知数を取り除く
+    // Remove notification count from Notion titles
     if (row.url.startsWith("https://www.notion.so/")) {
       title = row.title.replace(/^\((\d+\+?)\)\s/, "");
     }
 
-    // Slack は除く （記録が中途半端）
+    // Skip Slack (records are incomplete)
     if (row.url.includes(".slack.com")) {
       continue;
     }
 
-    // 同じタイトルの場合は省く
+    // Skip if title is the same as a recent one
     if (
       LOOK_BACK_RANGE.some((x) =>
         records.at(-x)?.title.toUpperCase() === title.toUpperCase()
@@ -46,17 +46,17 @@ export function chromeHistoryCsvToRecord(text: string): ReportRecord[] {
       continue;
     }
 
-    // Google Meet は除く（カレンダーで補完できる）
+    // Skip Google Meet (can be supplemented by calendar)
     if (row.url.startsWith("https://meet.google.com/")) {
       continue;
     }
 
-    // X は除く
+    // Skip X
     if (row.url.startsWith("https://x.com/")) {
       continue;
     }
 
-    // Google Calendar 内の遷移は除く
+    // Skip navigation within Google Calendar
     if (
       row.url.startsWith("https://calendar.google.com/calendar") &&
       (LOOK_BACK_RANGE.some((x) =>
@@ -68,27 +68,27 @@ export function chromeHistoryCsvToRecord(text: string): ReportRecord[] {
       continue;
     }
 
-    // リダイレクトを除く
+    // Skip redirects
     if (row.url.startsWith("https://www.google.com/url")) {
       continue;
     }
 
-    // Google Keep を除く
+    // Skip Google Keep
     if (row.url.startsWith("https://keep.google.com/")) {
       continue;
     }
 
-    // Scrapbox を除く （Firefox でカウント）
+    // Skip Scrapbox (counted in Firefox)
     if (row.url.startsWith("https://scrapbox.io/")) {
       continue;
     }
 
-    // GitHub を除く
+    // Skip GitHub
     if (row.url.startsWith("https://github.com/")) {
       continue;
     }
 
-    // GTD を除く
+    // Skip GTD
     if (row.url.includes("17331669571280f28638e7aa1ca78021")) {
       continue;
     }
@@ -105,7 +105,7 @@ export function chromeHistoryCsvToRecord(text: string): ReportRecord[] {
       }
     }
 
-    // メモを除く
+    // Skip notes
     if (
       [
         "8939b3782f014b7aa4b4748683ff686d",
@@ -122,7 +122,7 @@ export function chromeHistoryCsvToRecord(text: string): ReportRecord[] {
       continue;
     }
 
-    // Looker を除く
+    // Skip Looker
     if (
       row.url.includes(".cloud.looker.com") ||
       row.url.includes("https://lookerstudio.google.com/")
@@ -130,22 +130,22 @@ export function chromeHistoryCsvToRecord(text: string): ReportRecord[] {
       continue;
     }
 
-    // Salesforce を除く
+    // Skip Salesforce
     if (title.endsWith("| Salesforce")) {
       continue;
     }
 
-    // Vivaldi を除く
+    // Skip Vivaldi
     if (row.url.includes("vivaldi.")) {
       continue;
     }
 
-    // 検索自体を除く
+    // Skip searches
     if (row.url.startsWith("https://www.google.com/search?")) {
       continue;
     }
 
-    // ログインを除く
+    // Skip login pages
     if (
       row.url.startsWith("https://login.microsoftonline.com/") ||
       row.url.startsWith("https://accounts.google.com/v3/signin") ||
@@ -156,7 +156,7 @@ export function chromeHistoryCsvToRecord(text: string): ReportRecord[] {
       continue;
     }
 
-    // 議事録を除く
+    // Skip meeting minutes
     if (
       [
         "14c3166957128005aba0d72f3329b7b6",
@@ -176,7 +176,7 @@ export function chromeHistoryCsvToRecord(text: string): ReportRecord[] {
     }
 
     try {
-      // 日付と時間からエポック時間を算出
+      // Calculate epoch time from date and time
       // us order
       const [month, day, year] = row.date.split("/").map(Number);
       const [hour, minute, second] = row.time.split(":").map(Number);
@@ -185,22 +185,22 @@ export function chromeHistoryCsvToRecord(text: string): ReportRecord[] {
         isNaN(year) || isNaN(month) || isNaN(day) ||
         isNaN(hour) || isNaN(minute) || isNaN(second)
       ) {
-        console.error(`不正な日付形式: ${row.date} ${row.time}`);
+        console.error(`Invalid date format: ${row.date} ${row.time}`);
         continue;
       }
 
-      // Javascriptの月は0から始まるため、月から1を引く
+      // JavaScript months start from 0, so subtract 1 from the month
       const dateObj = new Date(year, month - 1, day, hour, minute, second);
       const epoch = dateObj.getTime();
 
-      // Recordオブジェクトを作成して配列に追加
+      // Create Record object and add it to the array
       records.push({
         epoch,
         title,
         meta: row.url,
       });
     } catch (error) {
-      console.error(`日付変換エラー: ${row.date} ${row.time}`, error);
+      console.error(`Date conversion error: ${row.date} ${row.time}`, error);
     }
   }
 

@@ -2,7 +2,7 @@ import { Encrypter } from "age-encryption";
 import { exists } from "jsr:@std/fs/exists";
 
 /**
- * アプリケーションの設定情報
+ * Application configuration information
  */
 interface Config {
   inputFile: string;
@@ -13,16 +13,16 @@ interface Config {
 }
 
 /**
- * 環境設定を読み込み、バリデーションする
+ * Load and validate environment settings
  */
 function loadConfig(): Config {
   const inputFile = "exclusions.json5";
   const outputFile = `${inputFile}.age`;
 
-  // 環境変数を取得して検証
+  // Get and validate environment variables
   const passphrase = Deno.env.get("PASSPHRASE");
   if (!passphrase) {
-    throw new Error("環境変数 'PASSPHRASE' が設定されていません");
+    throw new Error("Environment variable 'PASSPHRASE' is not set");
   }
 
   return {
@@ -35,11 +35,11 @@ function loadConfig(): Config {
 }
 
 /**
- * 設定ファイルを暗号化する
+ * Encrypt configuration file
  */
 async function main() {
   try {
-    // 設定を一度だけロードし、以降はその値を使用
+    // Load configuration once and use its values throughout
     const config = loadConfig();
 
     const encrypter = initializeEncrypter(config.envVars.passphrase);
@@ -55,7 +55,7 @@ async function main() {
 }
 
 /**
- * 暗号化ツールを初期化する
+ * Initialize encryption tool
  */
 function initializeEncrypter(passphrase: string): Encrypter {
   const encrypter = new Encrypter();
@@ -64,7 +64,7 @@ function initializeEncrypter(passphrase: string): Encrypter {
 }
 
 /**
- * 入力ファイルを読み込む
+ * Read input file
  */
 async function readInputFile(filePath: string): Promise<string> {
   const buffer = await Deno.readFile(filePath);
@@ -72,46 +72,46 @@ async function readInputFile(filePath: string): Promise<string> {
 }
 
 /**
- * 出力ファイルの書き込みを行うべきかを確認する
+ * Check if output file should be written
  */
 async function shouldProceedWithWrite(filePath: string): Promise<boolean> {
   if (await exists(filePath)) {
-    console.warn(`警告: ファイル '${filePath}' は既に存在します。`);
+    console.warn(`Warning: File '${filePath}' already exists.`);
     const shouldOverwrite = confirm(
-      `ファイル '${filePath}' を上書きしますか？`,
+      `Do you want to overwrite file '${filePath}'?`,
     );
 
     if (!shouldOverwrite) {
-      console.log("処理をキャンセルしました。ファイルは上書きされません。");
+      console.log("Operation cancelled. File will not be overwritten.");
       return false;
     }
-    console.log("ファイルを上書きします...");
+    console.log("Overwriting file...");
   }
   return true;
 }
 
 /**
- * 暗号化されたデータをファイルに書き込む
+ * Write encrypted data to output file
  */
 async function writeOutputFile(
   filePath: string,
   data: Uint8Array,
 ): Promise<void> {
   await Deno.writeFile(filePath, data);
-  console.log(`暗号化されたファイルが正常に保存されました: ${filePath}`);
+  console.log(`Encrypted file successfully saved: ${filePath}`);
 }
 
 /**
- * エラーを適切に処理する
+ * Handle errors appropriately
  */
 function handleError(error: unknown): never {
   if (error instanceof Deno.errors.NotFound) {
     const config = loadConfig();
-    console.error(`エラー: ファイル '${config.inputFile}' が見つかりません。`);
+    console.error(`Error: File '${config.inputFile}' not found.`);
     Deno.exit(1);
   } else {
     console.error(
-      `予期せぬエラーが発生しました: ${
+      `Unexpected error occurred: ${
         error instanceof Error ? error.message : String(error)
       }`,
     );
