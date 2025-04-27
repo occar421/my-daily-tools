@@ -35,9 +35,22 @@ for await (
   }
 }
 
-records.sort((a, b) => a.epoch - b.epoch);
+// Remove duplicate records (same epoch, title, and meta) using Map for O(n) complexity
+const uniqueMap = new Map();
+for (const record of records) {
+  // Create a unique key for each record
+  const key = `${record.epoch}-${record.title}-${record.meta}`;
+  // Only add to map if this key doesn't exist yet
+  if (!uniqueMap.has(key)) {
+    uniqueMap.set(key, record);
+  }
+}
 
-console.debug("Records: ", records);
+// Convert map values back to array
+const uniqueRecords = Array.from(uniqueMap.values());
+uniqueRecords.sort((a, b) => a.epoch - b.epoch);
+
+console.debug("Records: ", uniqueRecords);
 
 async function getExclusions(config: Config): Promise<Exclusions> {
   const decrypter = new Decrypter();
