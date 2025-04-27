@@ -60,38 +60,44 @@ function getEndEpochFromDateString(dateStr?: string): number | undefined {
 /**
  * Parse date range from command line arguments
  * @returns Object containing start and end epoch timestamps
+ * @throws Error if startDate is not provided
  */
-function parseDateRangeFromArgs(): { startEpoch?: number; endEpoch?: number } {
+function parseDateRangeFromArgs(): { startEpoch: number; endEpoch?: number } {
   // Parse command line arguments for start and end dates
   const args = parseArgs(Deno.args, {
     string: ["startDate", "endDate"],
   });
 
+  // Check if startDate is provided
+  if (!args.startDate) {
+    throw new Error("startDate is required. Please provide a start date in YYYY-MM-DD format.");
+  }
+
   // Convert date strings to epoch timestamps using the specific functions
   const startEpoch = getStartEpochFromDateString(args.startDate);
   const endEpoch = getEndEpochFromDateString(args.endDate);
 
+  // Ensure startEpoch is defined (this should always be true if args.startDate is provided)
+  if (startEpoch === undefined) {
+    throw new Error("Failed to parse startDate. Please provide a valid date in YYYY-MM-DD format.");
+  }
+
   // Log the date range being used for filtering
-  if (startEpoch !== undefined || endEpoch !== undefined) {
-    console.log("Filtering records by date range:");
-    if (startEpoch !== undefined) {
-      const startDateStr = new Date(startEpoch).toISOString().split("T")[0];
-      console.log(
-        `  Start date: ${startDateStr} (from ${HOUR_OFFSET.toString().padStart(2, '0')}:00:00)`,
-      );
-    }
-    if (endEpoch !== undefined) {
-      // For end date, we need to show the original date (not the next day)
-      const endDate = new Date(endEpoch);
-      endDate.setDate(endDate.getDate() - 1); // Go back to original date
-      const endDateStr = endDate.toISOString().split("T")[0];
-      const prevHour = (HOUR_OFFSET - 1).toString().padStart(2, '0');
-      console.log(
-        `  End date: ${endDateStr} (until ${prevHour}:59:59.999 of the next day)`,
-      );
-    }
-  } else {
-    console.log("No date range specified, showing all records.");
+  console.log("Filtering records by date range:");
+  const startDateStr = new Date(startEpoch).toISOString().split("T")[0];
+  console.log(
+    `  Start date: ${startDateStr} (from ${HOUR_OFFSET.toString().padStart(2, '0')}:00:00)`,
+  );
+
+  if (endEpoch !== undefined) {
+    // For end date, we need to show the original date (not the next day)
+    const endDate = new Date(endEpoch);
+    endDate.setDate(endDate.getDate() - 1); // Go back to original date
+    const endDateStr = endDate.toISOString().split("T")[0];
+    const prevHour = (HOUR_OFFSET - 1).toString().padStart(2, '0');
+    console.log(
+      `  End date: ${endDateStr} (until ${prevHour}:59:59.999 of the next day)`,
+    );
   }
 
   return {

@@ -15,7 +15,7 @@ export interface Config {
   envVars: {
     passphrase: string;
   };
-  startEpoch?: number;
+  startEpoch: number;
   endEpoch?: number;
 }
 

@@ -69,18 +69,14 @@ async function getExclusions(config: Config): Promise<Exclusions> {
   return parseExclusions(text);
 }
 
-// Filter records by epoch range if start and end are provided
+// Filter records by epoch range (startEpoch is required, endEpoch is optional)
 export function filterRecordsByEpochRange(
   records: ReportRecord[],
-  startEpoch?: number,
+  startEpoch: number,
   endEpoch?: number,
 ): ReportRecord[] {
-  if (startEpoch === undefined && endEpoch === undefined) {
-    return records;
-  }
-
   return records.filter((record) => {
-    const isAfterStart = startEpoch === undefined || record.epoch >= startEpoch;
+    const isAfterStart = record.epoch >= startEpoch;
     const isBeforeEnd = endEpoch === undefined || record.epoch <= endEpoch;
     return isAfterStart && isBeforeEnd;
   });
