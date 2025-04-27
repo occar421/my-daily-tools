@@ -1,6 +1,7 @@
 import { exists } from "jsr:@std/fs/exists";
 import { Config, Exclusions, exclusionsSchema } from "./types.ts";
 import JSON5 from "json5";
+import { parse } from "jsr:@std/flags";
 
 /**
  * Load and validate environment settings
@@ -10,12 +11,54 @@ export function loadConfig(): Config {
   const cryptedFilePath = `${rawFilePath}.age`;
   const passphrase = loadPassphrase();
 
+  // Parse command line arguments for start and end dates
+  const args = parse(Deno.args, {
+    string: ["startDate", "endDate"],
+  });
+
+  // Convert date strings to epoch timestamps
+  let startEpoch: number | undefined = undefined;
+  let endEpoch: number | undefined = undefined;
+
+  if (args.startDate) {
+    const startDate = new Date(args.startDate);
+    startEpoch = startDate.getTime();
+  }
+
+  if (args.endDate) {
+    const endDate = new Date(args.endDate);
+    // Set to end of day (23:59:59.999) to include the entire end date
+    endDate.setHours(23, 59, 59, 999);
+    endEpoch = endDate.getTime();
+  }
+
+  // Log the date range being used for filtering
+  if (startEpoch !== undefined || endEpoch !== undefined) {
+    console.log("Filtering records by date range:");
+    if (startEpoch !== undefined) {
+      console.log(
+        "  Start date:",
+        new Date(startEpoch).toISOString().split("T")[0],
+      );
+    }
+    if (endEpoch !== undefined) {
+      console.log(
+        "  End date:",
+        new Date(endEpoch).toISOString().split("T")[0],
+      );
+    }
+  } else {
+    console.log("No date range specified, showing all records.");
+  }
+
   return {
     rawFilePath,
     cryptedFilePath,
     envVars: {
       passphrase,
     },
+    startEpoch,
+    endEpoch,
   };
 }
 

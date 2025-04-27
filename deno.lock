@@ -1,8 +1,10 @@
 {
   "version": "4",
   "specifiers": {
+    "jsr:@std/assert@0.224": "0.224.0",
     "jsr:@std/assert@1": "1.0.13",
     "jsr:@std/csv@*": "1.0.6",
+    "jsr:@std/flags@*": "0.224.0",
     "jsr:@std/fs@*": "1.0.17",
     "jsr:@std/internal@^1.0.6": "1.0.6",
     "jsr:@std/path@*": "1.0.9",
@@ -12,6 +14,9 @@
     "npm:zod@^3.24.3": "3.24.3"
   },
   "jsr": {
+    "@std/assert@0.224.0": {
+      "integrity": "8643233ec7aec38a940a8264a6e3eed9bfa44e7a71cc6b3c8874213ff401967f"
+    },
     "@std/assert@1.0.13": {
       "integrity": "ae0d31e41919b12c656c742b22522c32fb26ed0cba32975cb0de2a273cb68b29",
       "dependencies": [
@@ -22,6 +27,12 @@
       "integrity": "52ef0e62799a0028d278fa04762f17f9bd263fad9a8e7f98c14fbd371d62d9fd",
       "dependencies": [
         "jsr:@std/streams"
+      ]
+    },
+    "@std/flags@0.224.0": {
+      "integrity": "d40eaf58c356b2e1313c6d4e62dc28b614aad2ddae6f5ff72a969e0b1f5ad689",
+      "dependencies": [
+        "jsr:@std/assert@0.224"
       ]
     },
     "@std/fs@1.0.17": {
