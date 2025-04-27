@@ -1,16 +1,12 @@
 import { Encrypter } from "age-encryption";
-import { exists } from "jsr:@std/fs/exists";
-
-/**
- * Application configuration information
- */
-interface Config {
-  inputFile: string;
-  outputFile: string;
-  envVars: {
-    passphrase: string;
-  };
-}
+import { 
+  Config, 
+  loadPassphrase, 
+  readInputFileText, 
+  shouldProceedWithWrite, 
+  writeOutputFile as writeFile,
+  handleError as handleFileError
+} from "./fileUtils.ts";
 
 /**
  * Load and validate environment settings
@@ -18,12 +14,7 @@ interface Config {
 function loadConfig(): Config {
   const inputFile = "exclusions.json5";
   const outputFile = `${inputFile}.age`;
-
-  // Get and validate environment variables
-  const passphrase = Deno.env.get("PASSPHRASE");
-  if (!passphrase) {
-    throw new Error("Environment variable 'PASSPHRASE' is not set");
-  }
+  const passphrase = loadPassphrase();
 
   return {
     inputFile,
@@ -43,11 +34,11 @@ async function main() {
     const config = loadConfig();
 
     const encrypter = initializeEncrypter(config.envVars.passphrase);
-    const plaintext = await readInputFile(config.inputFile);
+    const plaintext = await readInputFileText(config.inputFile);
     const ciphertext = await encrypter.encrypt(plaintext);
 
     if (await shouldProceedWithWrite(config.outputFile)) {
-      await writeOutputFile(config.outputFile, ciphertext);
+      await writeEncryptedFile(config.outputFile, ciphertext);
     }
   } catch (error) {
     handleError(error);
@@ -64,59 +55,22 @@ function initializeEncrypter(passphrase: string): Encrypter {
 }
 
 /**
- * Read input file
+ * Write encrypted data to output file with specific success message
  */
-async function readInputFile(filePath: string): Promise<string> {
-  const buffer = await Deno.readFile(filePath);
-  return new TextDecoder().decode(buffer);
-}
-
-/**
- * Check if output file should be written
- */
-async function shouldProceedWithWrite(filePath: string): Promise<boolean> {
-  if (await exists(filePath)) {
-    console.warn(`Warning: File '${filePath}' already exists.`);
-    const shouldOverwrite = confirm(
-      `Do you want to overwrite file '${filePath}'?`,
-    );
-
-    if (!shouldOverwrite) {
-      console.log("Operation cancelled. File will not be overwritten.");
-      return false;
-    }
-    console.log("Overwriting file...");
-  }
-  return true;
-}
-
-/**
- * Write encrypted data to output file
- */
-async function writeOutputFile(
+async function writeEncryptedFile(
   filePath: string,
   data: Uint8Array,
 ): Promise<void> {
-  await Deno.writeFile(filePath, data);
+  await writeFile(filePath, data);
   console.log(`Encrypted file successfully saved: ${filePath}`);
 }
 
 /**
- * Handle errors appropriately
+ * Handle errors with specific context for encryption
  */
 function handleError(error: unknown): never {
-  if (error instanceof Deno.errors.NotFound) {
-    const config = loadConfig();
-    console.error(`Error: File '${config.inputFile}' not found.`);
-    Deno.exit(1);
-  } else {
-    console.error(
-      `Unexpected error occurred: ${
-        error instanceof Error ? error.message : String(error)
-      }`,
-    );
-    throw error;
-  }
+  const config = loadConfig();
+  return handleFileError(error, config.inputFile);
 }
 
 await main();

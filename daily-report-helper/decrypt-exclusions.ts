@@ -1,16 +1,12 @@
 import { Decrypter } from "age-encryption";
-import { exists } from "jsr:@std/fs/exists";
-
-/**
- * Application configuration information
- */
-interface Config {
-  inputFile: string;
-  outputFile: string;
-  envVars: {
-    passphrase: string;
-  };
-}
+import { 
+  Config, 
+  loadPassphrase, 
+  readInputFileBinary, 
+  shouldProceedWithWrite, 
+  writeOutputFile as writeFile,
+  handleError as handleFileError
+} from "./fileUtils.ts";
 
 /**
  * Load and validate environment settings
@@ -18,12 +14,7 @@ interface Config {
 function loadConfig(): Config {
   const inputFile = "exclusions.json5.age";
   const outputFile = inputFile.replace(".age", "");
-
-  // Get and validate environment variables
-  const passphrase = Deno.env.get("PASSPHRASE");
-  if (!passphrase) {
-    throw new Error("Environment variable 'PASSPHRASE' is not set");
-  }
+  const passphrase = loadPassphrase();
 
   return {
     inputFile,
@@ -43,11 +34,11 @@ async function main() {
     const config = loadConfig();
 
     const decrypter = initializeDecrypter(config.envVars.passphrase);
-    const cypherBuffer = await readInputFile(config.inputFile);
+    const cypherBuffer = await readInputFileBinary(config.inputFile);
     const plainBuffer = await decrypter.decrypt(cypherBuffer);
 
     if (await shouldProceedWithWrite(config.outputFile)) {
-      await writeOutputFile(config.outputFile, plainBuffer);
+      await writeDecryptedFile(config.outputFile, plainBuffer);
     }
   } catch (error) {
     handleError(error);
@@ -64,58 +55,22 @@ function initializeDecrypter(passphrase: string): Decrypter {
 }
 
 /**
- * Read input file
+ * Write decrypted data to output file with specific success message
  */
-async function readInputFile(filePath: string): Promise<Uint8Array> {
-  return await Deno.readFile(filePath);
-}
-
-/**
- * Check if output file should be written
- */
-async function shouldProceedWithWrite(filePath: string): Promise<boolean> {
-  if (await exists(filePath)) {
-    console.warn(`Warning: File '${filePath}' already exists.`);
-    const shouldOverwrite = confirm(
-      `Do you want to overwrite file '${filePath}'?`,
-    );
-
-    if (!shouldOverwrite) {
-      console.log("Operation cancelled. File will not be overwritten.");
-      return false;
-    }
-    console.log("Overwriting file...");
-  }
-  return true;
-}
-
-/**
- * Write decrypted data to output file
- */
-async function writeOutputFile(
+async function writeDecryptedFile(
   filePath: string,
-  data: Uint8Array<ArrayBufferLike>,
+  data: Uint8Array,
 ): Promise<void> {
-  await Deno.writeFile(filePath, data);
+  await writeFile(filePath, data);
   console.log(`Decrypted file successfully saved: ${filePath}`);
 }
 
 /**
- * Handle errors appropriately
+ * Handle errors with specific context for decryption
  */
 function handleError(error: unknown): never {
-  if (error instanceof Deno.errors.NotFound) {
-    const config = loadConfig();
-    console.error(`Error: File '${config.inputFile}' not found.`);
-    Deno.exit(1);
-  } else {
-    console.error(
-      `Unexpected error occurred: ${
-        error instanceof Error ? error.message : String(error)
-      }`,
-    );
-    throw error;
-  }
+  const config = loadConfig();
+  return handleFileError(error, config.inputFile);
 }
 
 await main();
