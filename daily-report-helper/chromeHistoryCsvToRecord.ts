@@ -80,15 +80,15 @@ export function chromeHistoryCsvToRecord(
       ) {
         continue;
       }
+    }
 
-      // Skip if the Notion title matches any of the exclusion patterns
-      if (
-        exclusions.notionTitleContains?.some((pattern) =>
-          normalize(title).includes(normalize(pattern))
-        )
-      ) {
-        continue;
-      }
+    // Skip if the Notion title matches any of the exclusion patterns
+    if (
+      exclusions.titleContains?.some((pattern) =>
+        normalize(title).includes(normalize(pattern))
+      )
+    ) {
+      continue;
     }
 
     try {

@@ -31,7 +31,7 @@ export const exclusionsSchema = z.object({
   notionIds: z.array(z.string()).optional(),
 
   // Notion titles to exclude (exact match or substring)
-  notionTitleContains: z.array(z.string()).optional(),
+  titleContains: z.array(z.string()).optional(),
 });
 
 /**
