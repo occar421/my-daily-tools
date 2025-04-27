@@ -1,8 +1,7 @@
 import { join, parse as parsePath } from "jsr:@std/path";
-import JSON5 from "json5";
 import { chromeHistoryCsvToRecord } from "./chromeHistoryCsvToRecord.ts";
 import type { Config, Exclusions, ReportRecord } from "./types.ts";
-import { loadConfig } from "./exclusions-utils.ts";
+import { loadConfig, parseExclusions } from "./exclusions-utils.ts";
 import { Decrypter } from "age-encryption";
 
 const records: ReportRecord[] = [];
@@ -22,7 +21,10 @@ for await (
     switch (parsedPath.ext) {
       case ".csv":
         records.push(
-          ...chromeHistoryCsvToRecord(await Deno.readTextFile(path), exclusions),
+          ...chromeHistoryCsvToRecord(
+            await Deno.readTextFile(path),
+            exclusions,
+          ),
         );
         break;
       default:
@@ -44,5 +46,6 @@ async function getExclusions(config: Config): Promise<Exclusions> {
   const cypherBuffer = await Deno.readFile(config.cryptedFilePath);
   const plainTextData = await decrypter.decrypt(cypherBuffer);
   const text = new TextDecoder().decode(plainTextData);
-  return JSON5.parse<Exclusions>(text);
+
+  return parseExclusions(text);
 }

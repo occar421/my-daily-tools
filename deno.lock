@@ -8,7 +8,8 @@
     "jsr:@std/path@*": "1.0.9",
     "jsr:@std/streams@^1.0.9": "1.0.9",
     "npm:age-encryption@~0.2.3": "0.2.3",
-    "npm:json5@^2.2.3": "2.2.3"
+    "npm:json5@^2.2.3": "2.2.3",
+    "npm:zod@^3.24.3": "3.24.3"
   },
   "jsr": {
     "@std/assert@1.0.13": {
@@ -63,13 +64,17 @@
     },
     "json5@2.2.3": {
       "integrity": "sha512-XmOWe7eyHYH14cLdVPoyg+GOH3rYX++KpzrylJwSW98t3Nk+U8XOl8FWKOgwtzdb8lXGf6zYwDUzeHMWfxasyg=="
+    },
+    "zod@3.24.3": {
+      "integrity": "sha512-HhY1oqzWCQWuUqvBFnsyrtZRhyPeR7SUGv+C4+MsisMuVfSPx8HpwWqH8tRahSlt6M3PiFAcoeFhZAqIXTxoSg=="
     }
   },
   "workspace": {
     "dependencies": [
       "jsr:@std/assert@1",
       "npm:age-encryption@~0.2.3",
-      "npm:json5@^2.2.3"
+      "npm:json5@^2.2.3",
+      "npm:zod@^3.24.3"
     ]
   }
 }

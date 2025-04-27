@@ -2,6 +2,7 @@ import { Encrypter } from "age-encryption";
 import {
   handleFileNotFoundError,
   loadConfig,
+  parseExclusions,
   shouldProceedWithWrite,
 } from "./exclusions-utils.ts";
 
@@ -13,14 +14,16 @@ async function main() {
   const config = loadConfig();
 
   try {
-    const encrypter = initializeEncrypter(config.envVars.passphrase);
     const rawText = await Deno.readTextFile(config.rawFilePath);
+    parseExclusions(rawText);
+
+    const encrypter = initializeEncrypter(config.envVars.passphrase);
     const cipherBinary = await encrypter.encrypt(rawText);
 
     if (await shouldProceedWithWrite(config.cryptedFilePath)) {
       await Deno.writeFile(config.cryptedFilePath, cipherBinary);
       console.log(
-        `Decrypted file successfully saved: ${config.cryptedFilePath}`,
+        `Encrypted file successfully saved: ${config.cryptedFilePath}`,
       );
     }
   } catch (error) {

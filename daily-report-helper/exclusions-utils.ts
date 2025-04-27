@@ -1,5 +1,6 @@
 import { exists } from "jsr:@std/fs/exists";
-import { Config } from "./types.ts";
+import { Config, Exclusions, exclusionsSchema } from "./types.ts";
+import JSON5 from "json5";
 
 /**
  * Load and validate environment settings
@@ -68,4 +69,17 @@ export function loadPassphrase(): string {
     throw new Error("Environment variable 'PASSPHRASE' is not set");
   }
   return passphrase;
+}
+
+export function parseExclusions(rawText: string): Exclusions {
+  // Validate JSON5 data before encrypting
+  try {
+    const parsedJson = JSON5.parse(rawText);
+    const parsedExclusions = exclusionsSchema.parse(parsedJson);
+    console.log("Exclusions data validation successful");
+    return parsedExclusions;
+  } catch (validationError) {
+    console.error("Error validating exclusions data:", validationError);
+    Deno.exit(1);
+  }
 }
