@@ -3,6 +3,7 @@ import { chromeHistoryCsvToRecord } from "./chromeHistoryCsvToRecord.ts";
 import type { Config, Exclusions, ReportRecord } from "./types.ts";
 import { loadConfig, parseExclusions } from "./exclusions-utils.ts";
 import { Decrypter } from "age-encryption";
+import { parse } from "jsr:@std/flags";
 
 const records: ReportRecord[] = [];
 
@@ -50,13 +51,44 @@ for (const record of records) {
 const uniqueRecords = Array.from(uniqueMap.values());
 uniqueRecords.sort((a, b) => a.epoch - b.epoch);
 
-// Example usage: Filter records between specific epochs
-// const startEpoch = 1609459200000; // 2021-01-01 00:00:00 UTC
-// const endEpoch = 1640995200000;   // 2022-01-01 00:00:00 UTC
+// Parse command line arguments for start and end dates
+const args = parse(Deno.args, {
+  string: ["start", "end"],
+});
+
+// Convert date strings to epoch timestamps (midnight UTC)
+let startEpoch: number | undefined = undefined;
+let endEpoch: number | undefined = undefined;
+
+if (args.start) {
+  const startDate = new Date(args.start);
+  startEpoch = startDate.getTime();
+}
+
+if (args.end) {
+  const endDate = new Date(args.end);
+  // Set to end of day (23:59:59.999) to include the entire end date
+  endDate.setHours(23, 59, 59, 999);
+  endEpoch = endDate.getTime();
+}
+
+// Log the date range being used for filtering
+if (startEpoch !== undefined || endEpoch !== undefined) {
+  console.log("Filtering records by date range:");
+  if (startEpoch !== undefined) {
+    console.log("  Start date:", new Date(startEpoch).toISOString().split("T")[0]);
+  }
+  if (endEpoch !== undefined) {
+    console.log("  End date:", new Date(endEpoch).toISOString().split("T")[0]);
+  }
+} else {
+  console.log("No date range specified, showing all records.");
+}
+
 const filteredRecords = filterRecordsByEpochRange(
   uniqueRecords,
-  undefined,
-  undefined,
+  startEpoch,
+  endEpoch,
 );
 
 console.debug("Filtered Records: ", filteredRecords);
