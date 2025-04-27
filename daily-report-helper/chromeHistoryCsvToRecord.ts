@@ -33,7 +33,7 @@ export function chromeHistoryCsvToRecord(text: string): ReportRecord[] {
     }
 
     // Slack は除く （記録が中途半端）
-    if (title.match(/-\sSlack$/)) {
+    if (row.url.includes(".slack.com")) {
       continue;
     }
 
@@ -68,6 +68,11 @@ export function chromeHistoryCsvToRecord(text: string): ReportRecord[] {
       continue;
     }
 
+    // リダイレクトを除く
+    if (row.url.startsWith("https://www.google.com/url")) {
+      continue;
+    }
+
     // Google Keep を除く
     if (row.url.startsWith("https://keep.google.com/")) {
       continue;
@@ -75,6 +80,11 @@ export function chromeHistoryCsvToRecord(text: string): ReportRecord[] {
 
     // Scrapbox を除く （Firefox でカウント）
     if (row.url.startsWith("https://scrapbox.io/")) {
+      continue;
+    }
+
+    // GitHub を除く
+    if (row.url.startsWith("https://github.com/")) {
       continue;
     }
 
@@ -101,6 +111,11 @@ export function chromeHistoryCsvToRecord(text: string): ReportRecord[] {
         "8939b3782f014b7aa4b4748683ff686d",
         "641c5b2213924efb932de9d8da62e4f0",
         "41612fa22e19450385ca88138de0ec4c",
+        "42159aef09234dbaa984ae6f9592c3aa",
+        "1ad316695712805098ebe3d7c91fefe8",
+        "13d316695712809bb635f53ffdaf2117",
+        "51165ebaf0bd41218ea4cf48b3c6fb81",
+        "e4319b8d4e9144bcacbe5f67295494cd",
       ]
         .some((id) => row.url.includes(id))
     ) {
@@ -115,6 +130,16 @@ export function chromeHistoryCsvToRecord(text: string): ReportRecord[] {
       continue;
     }
 
+    // Salesforce を除く
+    if (title.endsWith("| Salesforce")) {
+      continue;
+    }
+
+    // Vivaldi を除く
+    if (row.url.includes("vivaldi.")) {
+      continue;
+    }
+
     // 検索自体を除く
     if (row.url.startsWith("https://www.google.com/search?")) {
       continue;
@@ -124,6 +149,7 @@ export function chromeHistoryCsvToRecord(text: string): ReportRecord[] {
     if (
       row.url.startsWith("https://login.microsoftonline.com/") ||
       row.url.startsWith("https://accounts.google.com/v3/signin") ||
+      row.url.startsWith("https://accounts.google.com/o/oauth2/") ||
       row.url.startsWith("https://mysignins.microsoft.com/") ||
       row.url.includes(".smarthr.jp/login")
     ) {
@@ -138,11 +164,13 @@ export function chromeHistoryCsvToRecord(text: string): ReportRecord[] {
         "13f31669571280c0a5dffa3f82d43601",
         "a11a734b78784a5cb5b41474e4febbdd",
         "1cf316695712800eb2b0d1b352d753b2",
+        "a953386776044551a22c18c8360c2521",
+        "1a8316695712809caf67dcd49930d8f8",
+        "1c731669571280ca833ad06b242ee078",
       ]
         .some((id) => row.url.includes(id)) ||
-      ["Delivery 分科会", "議事録(2024~)", "Delivery Sync"].some((id) =>
-        row.title.includes(id)
-      )
+      []
+        .some((id) => row.title.includes(id))
     ) {
       continue;
     }
@@ -175,8 +203,6 @@ export function chromeHistoryCsvToRecord(text: string): ReportRecord[] {
       console.error(`日付変換エラー: ${row.date} ${row.time}`, error);
     }
   }
-
-  console.debug("Records: ", records);
 
   return records;
 }

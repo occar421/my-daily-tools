@@ -25,3 +25,7 @@ for await (
     console.log("Read file: ", parsedPath.base);
   }
 }
+
+records.sort((a, b) => a.epoch - b.epoch);
+
+console.debug("Records: ", records);
