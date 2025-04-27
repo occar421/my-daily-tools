@@ -1,8 +1,5 @@
 {
-  "tasks": {
-    "daily-report-helper": "deno run --allow-read daily-report-helper/main.ts",
-    "daily-report-helper encrypt": "deno run --allow-env"
-  },
+  "tasks": {},
   "imports": {
     "@std/assert": "jsr:@std/assert@1",
     "age-encryption": "npm:age-encryption@^0.2.3",

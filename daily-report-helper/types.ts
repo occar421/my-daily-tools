@@ -29,6 +29,9 @@ export const exclusionsSchema = z.object({
 
   // Notion page IDs to exclude
   notionIds: z.array(z.string()).optional(),
+
+  // Notion titles to exclude (exact match or substring)
+  notionTitleContains: z.array(z.string()).optional(),
 });
 
 /**

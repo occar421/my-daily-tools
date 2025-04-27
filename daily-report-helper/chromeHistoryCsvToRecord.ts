@@ -16,7 +16,10 @@ export function chromeHistoryCsvToRecord(
 ): ReportRecord[] {
   const records: ReportRecord[] = [];
 
-  const csv: Record<"date" | "time" | "title" | "url", string>[] = parseCsv(
+  const csv: Record<
+    "date" | "time" | "title" | "url" | "transition",
+    string
+  >[] = parseCsv(
     text,
     {
       skipFirstRow: true,
@@ -25,6 +28,10 @@ export function chromeHistoryCsvToRecord(
   );
 
   for (const row of csv) {
+    if (row.transition === "reload") {
+      continue;
+    }
+
     // Skip if title is empty
     if (row.title.trim() === "") {
       continue;
@@ -45,27 +52,8 @@ export function chromeHistoryCsvToRecord(
       continue;
     }
 
-    // Skip navigation within Google Calendar
-    if (
-      row.url.startsWith("https://calendar.google.com/calendar") &&
-      (LOOK_BACK_RANGE.some((x) =>
-        records.at(-x)?.meta.startsWith(
-          "https://calendar.google.com/calendar",
-        )
-      ))
-    ) {
-      continue;
-    }
-
     // Skip based on URL prefixes from exclusions
     if (exclusions.urlPrefixes?.some((prefix) => row.url.startsWith(prefix))) {
-      continue;
-    }
-
-    // Skip based on URL contains from exclusions
-    if (
-      exclusions.urlContains?.some((substring) => row.url.includes(substring))
-    ) {
       continue;
     }
 
@@ -84,6 +72,15 @@ export function chromeHistoryCsvToRecord(
       // Skip if we've seen this Notion page recently
       if (
         LOOK_BACK_RANGE.some((x) => records.at(-x)?.meta.includes(notionId))
+      ) {
+        continue;
+      }
+
+      // Skip if the Notion title matches any of the exclusion patterns
+      if (
+        exclusions.notionTitleContains?.some((pattern) =>
+          title.toLowerCase().includes(pattern.toLowerCase())
+        )
       ) {
         continue;
       }
