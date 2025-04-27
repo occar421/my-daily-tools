@@ -4,32 +4,36 @@ import { exists } from "jsr:@std/fs/exists";
  * Application configuration information
  */
 export interface Config {
-  inputFile: string;
-  outputFile: string;
+  rawFilePath: string;
+  cryptedFilePath: string;
   envVars: {
     passphrase: string;
   };
 }
 
 /**
- * Read input file as binary data
+ * Load and validate environment settings
  */
-export async function readInputFileBinary(filePath: string): Promise<Uint8Array> {
-  return await Deno.readFile(filePath);
-}
+export function loadConfig(): Config {
+  const rawFilePath = "exclusions.json5";
+  const cryptedFilePath = `${rawFilePath}.age`;
+  const passphrase = loadPassphrase();
 
-/**
- * Read input file as text
- */
-export async function readInputFileText(filePath: string): Promise<string> {
-  const buffer = await Deno.readFile(filePath);
-  return new TextDecoder().decode(buffer);
+  return {
+    rawFilePath,
+    cryptedFilePath,
+    envVars: {
+      passphrase,
+    },
+  };
 }
 
 /**
  * Check if output file should be written
  */
-export async function shouldProceedWithWrite(filePath: string): Promise<boolean> {
+export async function shouldProceedWithWrite(
+  filePath: string,
+): Promise<boolean> {
   if (await exists(filePath)) {
     console.warn(`Warning: File '${filePath}' already exists.`);
     const shouldOverwrite = confirm(
@@ -46,20 +50,9 @@ export async function shouldProceedWithWrite(filePath: string): Promise<boolean>
 }
 
 /**
- * Write data to output file
- */
-export async function writeOutputFile(
-  filePath: string,
-  data: Uint8Array,
-): Promise<void> {
-  await Deno.writeFile(filePath, data);
-  console.log(`File successfully saved: ${filePath}`);
-}
-
-/**
  * Handle errors appropriately
  */
-export function handleError(error: unknown, inputFile: string): never {
+export function handleFileError(error: unknown, inputFile: string): never {
   if (error instanceof Deno.errors.NotFound) {
     console.error(`Error: File '${inputFile}' not found.`);
     Deno.exit(1);
