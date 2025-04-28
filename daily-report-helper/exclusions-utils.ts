@@ -1,10 +1,13 @@
-import { exists } from "jsr:@std/fs/exists";
 import { Config, Exclusions, exclusionsSchema } from "./types.ts";
 import JSON5 from "json5";
 import { parseArgs } from "jsr:@std/cli/parse-args";
+import { Services, createDefaultServices } from "./services.ts";
 
 // Constant for the hour offset used for date calculations
 const HOUR_OFFSET = 7;
+
+// Default services instance
+const defaultServices = createDefaultServices();
 
 /**
  * Validate and create a Date object from a date string
@@ -59,12 +62,15 @@ function getEndEpochFromDateString(dateStr?: string): number | undefined {
 
 /**
  * Parse date range from command line arguments
+ * @param services Services for environment and user interaction
  * @returns Object containing start and end epoch timestamps
  * @throws Error if startDate is not provided
  */
-function parseDateRangeFromArgs(): { startEpoch: number; endEpoch?: number } {
+function parseDateRangeFromArgs(
+  services: Services = defaultServices
+): { startEpoch: number; endEpoch?: number } {
   // Parse command line arguments for start and end dates
-  const args = parseArgs(Deno.args, {
+  const args = parseArgs(services.environment.getArgs(), {
     string: ["startDate", "endDate"],
   });
 
@@ -87,11 +93,11 @@ function parseDateRangeFromArgs(): { startEpoch: number; endEpoch?: number } {
   }
 
   // Log the date range being used for filtering
-  console.log("Filtering records by date range:");
+  services.userInteraction.log("Filtering records by date range:");
   // Use the original input date string instead of converting from epoch to avoid timezone issues
   const startDateStr = args.startDate;
   const startTimeStr = `${HOUR_OFFSET.toString().padStart(2, "0")}:00:00`;
-  console.log(
+  services.userInteraction.log(
     `  Start date: ${startDateStr} (from ${startTimeStr})`,
   );
 
@@ -100,7 +106,7 @@ function parseDateRangeFromArgs(): { startEpoch: number; endEpoch?: number } {
     const endDateStr = args.endDate;
     const prevHour = (HOUR_OFFSET - 1).toString().padStart(2, "0");
     const endTimeStr = `${prevHour}:59:59.999`;
-    console.log(
+    services.userInteraction.log(
       `  End date: ${endDateStr} (until ${endTimeStr} of the next day)`,
     );
   }
@@ -113,14 +119,15 @@ function parseDateRangeFromArgs(): { startEpoch: number; endEpoch?: number } {
 
 /**
  * Load and validate environment settings
+ * @param services Services for environment and user interaction
  */
-export function loadConfig(): Config {
+export function loadConfig(services: Services = defaultServices): Config {
   const rawFilePath = "exclusions.json5";
   const cryptedFilePath = `${rawFilePath}.age`;
-  const passphrase = loadPassphrase();
+  const passphrase = loadPassphrase(services);
 
   // Get date range from command line arguments
-  const { startEpoch, endEpoch } = parseDateRangeFromArgs();
+  const { startEpoch, endEpoch } = parseDateRangeFromArgs(services);
 
   return {
     rawFilePath,
@@ -135,37 +142,44 @@ export function loadConfig(): Config {
 
 /**
  * Check if output file should be written
+ * @param filePath Path to the file to check
+ * @param services Services for file system and user interaction
  */
 export async function shouldProceedWithWrite(
   filePath: string,
+  services: Services = defaultServices
 ): Promise<boolean> {
-  if (await exists(filePath)) {
-    console.warn(`Warning: File '${filePath}' already exists.`);
-    const shouldOverwrite = confirm(
+  if (await services.fileSystem.exists(filePath)) {
+    services.userInteraction.warn(`Warning: File '${filePath}' already exists.`);
+    const shouldOverwrite = services.userInteraction.confirm(
       `Do you want to overwrite file '${filePath}'?`,
     );
 
     if (!shouldOverwrite) {
-      console.log("Operation cancelled. File will not be overwritten.");
+      services.userInteraction.log("Operation cancelled. File will not be overwritten.");
       return false;
     }
-    console.log("Overwriting file...");
+    services.userInteraction.log("Overwriting file...");
   }
   return true;
 }
 
 /**
  * Handle errors appropriately
+ * @param error The error to handle
+ * @param inputFile The file that caused the error
+ * @param services Services for environment and user interaction
  */
 export function handleFileNotFoundError(
   error: unknown,
   inputFile: string,
+  services: Services = defaultServices
 ): never {
   if (error instanceof Deno.errors.NotFound) {
-    console.error(`Error: File '${inputFile}' not found.`);
-    Deno.exit(1);
+    services.userInteraction.error(`Error: File '${inputFile}' not found.`);
+    return services.environment.exit(1);
   } else {
-    console.error(
+    services.userInteraction.error(
       `Unexpected error occurred: ${
         error instanceof Error ? error.message : String(error)
       }`,
@@ -176,24 +190,33 @@ export function handleFileNotFoundError(
 
 /**
  * Load and validate passphrase from environment
+ * @param services Services for environment access
  */
-function loadPassphrase(): string {
-  const passphrase = Deno.env.get("PASSPHRASE");
+function loadPassphrase(services: Services = defaultServices): string {
+  const passphrase = services.environment.getEnv("PASSPHRASE");
   if (!passphrase) {
     throw new Error("Environment variable 'PASSPHRASE' is not set");
   }
   return passphrase;
 }
 
-export function parseExclusions(rawText: string): Exclusions {
+/**
+ * Parse and validate exclusions data
+ * @param rawText The raw JSON5 text to parse
+ * @param services Services for environment and user interaction
+ */
+export function parseExclusions(
+  rawText: string,
+  services: Services = defaultServices
+): Exclusions {
   // Validate JSON5 data before encrypting
   try {
     const parsedJson = JSON5.parse(rawText);
     const parsedExclusions = exclusionsSchema.parse(parsedJson);
-    console.log("Exclusions data validation successful");
+    services.userInteraction.log("Exclusions data validation successful");
     return parsedExclusions;
   } catch (validationError) {
-    console.error("Error validating exclusions data:", validationError);
-    Deno.exit(1);
+    services.userInteraction.error("Error validating exclusions data:", String(validationError));
+    return services.environment.exit(1);
   }
 }
