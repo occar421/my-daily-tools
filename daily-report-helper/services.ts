@@ -11,15 +11,6 @@ export interface FileSystem {
 }
 
 /**
- * Interface for environment operations
- */
-export interface Environment {
-  getEnv(key: string): string | undefined;
-  getArgs(): string[];
-  exit(code: number): never;
-}
-
-/**
  * Default implementation of FileSystem using Deno APIs
  */
 export class DenoFileSystem implements FileSystem {
@@ -41,28 +32,10 @@ export class DenoFileSystem implements FileSystem {
 }
 
 /**
- * Default implementation of Environment using Deno APIs
- */
-export class DenoEnvironment implements Environment {
-  getEnv(key: string): string | undefined {
-    return Deno.env.get(key);
-  }
-
-  getArgs(): string[] {
-    return [...Deno.args];
-  }
-
-  exit(code: number): never {
-    return Deno.exit(code);
-  }
-}
-
-/**
  * Container for all services
  */
 export interface Services {
   fileSystem: FileSystem;
-  environment: Environment;
 }
 
 /**
@@ -71,6 +44,5 @@ export interface Services {
 export function createDefaultServices(): Services {
   return {
     fileSystem: new DenoFileSystem(),
-    environment: new DenoEnvironment(),
   };
 }

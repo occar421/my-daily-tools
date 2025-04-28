@@ -22,9 +22,6 @@ Deno.test("initializeDecrypter - initializes decrypter with passphrase", () => {
   };
 
   try {
-    // Call the function
-    const decrypter = initializeDecrypter("test-passphrase");
-
     // Verify that addPassphrase was called with the correct passphrase
     assertSpyCalls(mockDecrypterInstance.addPassphrase, 1);
     assertSpyCall(mockDecrypterInstance.addPassphrase, 0, {

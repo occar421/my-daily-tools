@@ -62,15 +62,15 @@ function getEndEpochFromDateString(dateStr?: string): number | undefined {
 
 /**
  * Parse date range from command line arguments
- * @param services Services for environment and user interaction
+ * @param cmdArgs Command line arguments
  * @returns Object containing start and end epoch timestamps
  * @throws Error if startDate is not provided
  */
-function parseDateRangeFromArgs(
-  services: Services,
+export function parseDateRangeFromArgs(
+  cmdArgs: string[],
 ): { startEpoch: number; endEpoch?: number } {
   // Parse command line arguments for start and end dates
-  const args = parseArgs(services.environment.getArgs(), {
+  const args = parseArgs(cmdArgs, {
     string: ["startDate", "endDate"],
   });
 
@@ -119,15 +119,17 @@ function parseDateRangeFromArgs(
 
 /**
  * Load and validate environment settings
- * @param services Services for environment and user interaction
+ * @privateRemarks This function needs to be tested.
  */
-export function loadConfig(services: Services): Config {
+export function loadConfig(): Config {
   const rawFilePath = "exclusions.json5";
   const cryptedFilePath = `${rawFilePath}.age`;
-  const passphrase = loadPassphrase(services);
+  const passphrase = loadPassphraseFromEnv();
 
   // Get date range from command line arguments
-  const { startEpoch, endEpoch } = parseDateRangeFromArgs(services);
+  const { startEpoch, endEpoch } = parseDateRangeFromArgs(
+    Deno.args,
+  );
 
   return {
     rawFilePath,
@@ -141,35 +143,10 @@ export function loadConfig(services: Services): Config {
 }
 
 /**
- * Handle errors appropriately
- * @param error The error to handle
- * @param inputFile The file that caused the error
- * @param services Services for environment and user interaction
- */
-export function handleFileNotFoundError(
-  error: unknown,
-  inputFile: string,
-  services: Services,
-): never {
-  if (error instanceof Deno.errors.NotFound) {
-    logger.error(`Error: File '${inputFile}' not found.`);
-    return services.environment.exit(1);
-  } else {
-    logger.error(
-      `Unexpected error occurred: ${
-        error instanceof Error ? error.message : String(error)
-      }`,
-    );
-    throw error;
-  }
-}
-
-/**
  * Load and validate passphrase from environment
- * @param services Services for environment access
  */
-function loadPassphrase(services: Services): string {
-  const passphrase = services.environment.getEnv("PASSPHRASE");
+function loadPassphraseFromEnv(): string {
+  const passphrase = Deno.env.get("PASSPHRASE");
   if (!passphrase) {
     throw new Error("Environment variable 'PASSPHRASE' is not set");
   }
@@ -179,23 +156,12 @@ function loadPassphrase(services: Services): string {
 /**
  * Parse and validate exclusions data
  * @param rawText The raw JSON5 text to parse
- * @param services Services for environment and user interaction
  */
 export function parseExclusions(
   rawText: string,
-  services: Services,
 ): Exclusions {
-  // Validate JSON5 data before encrypting
-  try {
-    const parsedJson = JSON5.parse(rawText);
-    const parsedExclusions = exclusionsSchema.parse(parsedJson);
-    logger.info("Exclusions data validation successful");
-    return parsedExclusions;
-  } catch (validationError) {
-    logger.error(
-      "Error validating exclusions data:",
-      String(validationError),
-    );
-    return services.environment.exit(1);
-  }
+  const parsedJson = JSON5.parse(rawText);
+  const parsedExclusions = exclusionsSchema.parse(parsedJson);
+  logger.info("Exclusions data validation successful");
+  return parsedExclusions;
 }

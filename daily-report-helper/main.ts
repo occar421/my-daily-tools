@@ -2,7 +2,7 @@ import { join, parse as parsePath } from "jsr:@std/path";
 import { ConsoleHandler, getLogger, setup } from "jsr:@std/log";
 import { chromeHistoryCsvToRecord } from "./chromeHistoryCsvToRecord.ts";
 import type { Config, Exclusions, ReportRecord } from "./types.ts";
-import { loadConfig, parseExclusions } from "./exclusions-utils.ts";
+import { loadConfig, parseExclusions } from "./utils.ts";
 import { Decrypter } from "age-encryption";
 import { createDefaultServices } from "./services.ts";
 
@@ -24,7 +24,7 @@ setup({
 const logger = getLogger();
 const services = createDefaultServices();
 
-const config = loadConfig(services);
+const config = loadConfig();
 const exclusions = await getExclusions(config);
 const baseDir = join(import.meta.dirname ?? ".", "data");
 
@@ -81,11 +81,13 @@ async function getExclusions(config: Config): Promise<Exclusions> {
   const decrypter = new Decrypter();
   decrypter.addPassphrase(config.envVars.passphrase);
 
-  const cypherBuffer = await Deno.readFile(config.cryptedFilePath);
+  const cypherBuffer = await services.fileSystem.readFile(
+    config.cryptedFilePath,
+  );
   const plainTextData = await decrypter.decrypt(cypherBuffer);
   const text = new TextDecoder().decode(plainTextData);
 
-  return parseExclusions(text, services);
+  return parseExclusions(text);
 }
 
 // Filter records by epoch range (startEpoch is required, endEpoch is optional)

@@ -1,5 +1,5 @@
 import { Decrypter } from "age-encryption";
-import { handleFileNotFoundError, loadConfig } from "./exclusions-utils.ts";
+import { loadConfig } from "./utils.ts";
 import { createDefaultServices, Services } from "./services.ts";
 import { getLogger } from "jsr:@std/log";
 
@@ -21,20 +21,16 @@ export function initializeDecrypter(passphrase: string): Decrypter {
  */
 export async function decryptExclusions(services: Services) {
   // Load configuration once and use its values throughout
-  const config = loadConfig(services);
+  const config = loadConfig();
 
-  try {
-    const decrypter = initializeDecrypter(config.envVars.passphrase);
-    const cypherBuffer = await services.fileSystem.readFile(
-      config.cryptedFilePath,
-    );
-    const plainTextData = await decrypter.decrypt(cypherBuffer);
+  const decrypter = initializeDecrypter(config.envVars.passphrase);
+  const cypherBuffer = await services.fileSystem.readFile(
+    config.cryptedFilePath,
+  );
+  const plainTextData = await decrypter.decrypt(cypherBuffer);
 
-    await services.fileSystem.writeFile(config.rawFilePath, plainTextData);
-    logger.info(`File successfully saved: ${config.rawFilePath}`);
-  } catch (error) {
-    handleFileNotFoundError(error, config.cryptedFilePath, services);
-  }
+  await services.fileSystem.writeFile(config.rawFilePath, plainTextData);
+  logger.info(`File successfully saved: ${config.rawFilePath}`);
 }
 
 // Only run the main function if this is the main module

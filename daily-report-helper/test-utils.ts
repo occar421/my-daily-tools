@@ -1,22 +1,13 @@
 /**
  * Test utilities for mocking modules and services
  */
-import { Environment, FileSystem, Services } from "./services.ts";
+import { FileSystem, Services } from "./services.ts";
 import { Config } from "./types.ts";
 
 /**
  * Create a mock services object for testing
  */
 export function createMockServices(): Services {
-  const mockEnvironment: Environment = {
-    getEnv: (key: string) =>
-      key === "PASSPHRASE" ? "test-passphrase" : undefined,
-    getArgs: () => ["--startDate", "2023-01-01"],
-    exit: (code: number) => {
-      throw new Error(`Exit with code ${code}`);
-    },
-  };
-
   const mockFileSystem: FileSystem = {
     readTextFile: () => Promise.resolve(""),
     readFile: () => Promise.resolve(new Uint8Array()),
@@ -26,7 +17,6 @@ export function createMockServices(): Services {
 
   return {
     fileSystem: mockFileSystem,
-    environment: mockEnvironment,
   };
 }
 
