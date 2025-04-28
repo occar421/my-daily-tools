@@ -16,15 +16,21 @@ function createCsvRow(
   return `${date},${time},${title},${url},${transition}\n`;
 }
 
+// Helper function to create CSV data from an array of rows
+function createCsvData(rows: string[]): string {
+  return sampleCsvHeader + rows.join("");
+}
+
 Deno.test("chromeHistoryCsvToRecord - basic parsing", () => {
-  const csvData = sampleCsvHeader +
+  const csvData = createCsvData([
     createCsvRow(
       "1/1/2023",
       "10:00:00",
       "Test Page",
       "https://example.com",
       "link",
-    );
+    ),
+  ]);
 
   const exclusions: Exclusions = {};
   const result = chromeHistoryCsvToRecord(csvData, exclusions);
@@ -37,21 +43,22 @@ Deno.test("chromeHistoryCsvToRecord - basic parsing", () => {
 });
 
 Deno.test("chromeHistoryCsvToRecord - skip reload transitions", () => {
-  const csvData = sampleCsvHeader +
+  const csvData = createCsvData([
     createCsvRow(
       "1/1/2023",
       "10:00:00",
       "Test Page",
       "https://example.com",
       "reload",
-    ) +
+    ),
     createCsvRow(
       "1/1/2023",
       "10:01:00",
       "Another Page",
       "https://example.org",
       "link",
-    );
+    ),
+  ]);
 
   const exclusions: Exclusions = {};
   const result = chromeHistoryCsvToRecord(csvData, exclusions);
@@ -61,16 +68,17 @@ Deno.test("chromeHistoryCsvToRecord - skip reload transitions", () => {
 });
 
 Deno.test("chromeHistoryCsvToRecord - skip empty titles", () => {
-  const csvData = sampleCsvHeader +
-    createCsvRow("1/1/2023", "10:00:00", "", "https://example.com", "link") +
-    createCsvRow("1/1/2023", "10:01:00", "  ", "https://example.org", "link") +
+  const csvData = createCsvData([
+    createCsvRow("1/1/2023", "10:00:00", "", "https://example.com", "link"),
+    createCsvRow("1/1/2023", "10:01:00", "  ", "https://example.org", "link"),
     createCsvRow(
       "1/1/2023",
       "10:02:00",
       "Valid Title",
       "https://example.net",
       "link",
-    );
+    ),
+  ]);
 
   const exclusions: Exclusions = {};
   const result = chromeHistoryCsvToRecord(csvData, exclusions);
@@ -80,14 +88,15 @@ Deno.test("chromeHistoryCsvToRecord - skip empty titles", () => {
 });
 
 Deno.test("chromeHistoryCsvToRecord - remove notification count from Notion titles", () => {
-  const csvData = sampleCsvHeader +
+  const csvData = createCsvData([
     createCsvRow(
       "1/1/2023",
       "10:00:00",
       "(5) Notion Page",
       "https://www.notion.so/workspace/page-123",
       "link",
-    );
+    ),
+  ]);
 
   const exclusions: Exclusions = {};
   const result = chromeHistoryCsvToRecord(csvData, exclusions);
@@ -97,28 +106,29 @@ Deno.test("chromeHistoryCsvToRecord - remove notification count from Notion titl
 });
 
 Deno.test("chromeHistoryCsvToRecord - skip duplicate titles", () => {
-  const csvData = sampleCsvHeader +
+  const csvData = createCsvData([
     createCsvRow(
       "1/1/2023",
       "10:00:00",
       "Test Page",
       "https://example.com",
       "link",
-    ) +
+    ),
     createCsvRow(
       "1/1/2023",
       "10:01:00",
       "Test Page",
       "https://example.org",
       "link",
-    ) +
+    ),
     createCsvRow(
       "1/1/2023",
       "10:02:00",
       "Another Page",
       "https://example.net",
       "link",
-    );
+    ),
+  ]);
 
   const exclusions: Exclusions = {};
   const result = chromeHistoryCsvToRecord(csvData, exclusions);
@@ -129,21 +139,22 @@ Deno.test("chromeHistoryCsvToRecord - skip duplicate titles", () => {
 });
 
 Deno.test("chromeHistoryCsvToRecord - exclude by URL prefix", () => {
-  const csvData = sampleCsvHeader +
+  const csvData = createCsvData([
     createCsvRow(
       "1/1/2023",
       "10:00:00",
       "Excluded Page",
       "https://excluded.com/page",
       "link",
-    ) +
+    ),
     createCsvRow(
       "1/1/2023",
       "10:01:00",
       "Included Page",
       "https://example.com/page",
       "link",
-    );
+    ),
+  ]);
 
   const exclusions: Exclusions = {
     urlPrefixes: ["https://excluded.com"],
@@ -155,21 +166,22 @@ Deno.test("chromeHistoryCsvToRecord - exclude by URL prefix", () => {
 });
 
 Deno.test("chromeHistoryCsvToRecord - exclude by URL contains", () => {
-  const csvData = sampleCsvHeader +
+  const csvData = createCsvData([
     createCsvRow(
       "1/1/2023",
       "10:00:00",
       "Excluded Page",
       "https://example.com/excluded/page",
       "link",
-    ) +
+    ),
     createCsvRow(
       "1/1/2023",
       "10:01:00",
       "Included Page",
       "https://example.com/included/page",
       "link",
-    );
+    ),
+  ]);
 
   const exclusions: Exclusions = {
     urlContains: ["/excluded/"],
@@ -181,21 +193,22 @@ Deno.test("chromeHistoryCsvToRecord - exclude by URL contains", () => {
 });
 
 Deno.test("chromeHistoryCsvToRecord - exclude by Notion ID", () => {
-  const csvData = sampleCsvHeader +
+  const csvData = createCsvData([
     createCsvRow(
       "1/1/2023",
       "10:00:00",
       "Excluded Notion Page",
       "https://www.notion.so/workspace/Excluded-1234567890abcdef1234567890abcdef",
       "link",
-    ) +
+    ),
     createCsvRow(
       "1/1/2023",
       "10:01:00",
       "Included Notion Page",
       "https://www.notion.so/workspace/Included-abcdef1234567890abcdef1234567890",
       "link",
-    );
+    ),
+  ]);
 
   const exclusions: Exclusions = {
     notionIds: ["1234567890abcdef1234567890abcdef"],
@@ -207,21 +220,22 @@ Deno.test("chromeHistoryCsvToRecord - exclude by Notion ID", () => {
 });
 
 Deno.test("chromeHistoryCsvToRecord - exclude by title contains", () => {
-  const csvData = sampleCsvHeader +
+  const csvData = createCsvData([
     createCsvRow(
       "1/1/2023",
       "10:00:00",
       "Private Page",
       "https://example.com/page1",
       "link",
-    ) +
+    ),
     createCsvRow(
       "1/1/2023",
       "10:01:00",
       "Public Page",
       "https://example.com/page2",
       "link",
-    );
+    ),
+  ]);
 
   const exclusions: Exclusions = {
     titleContains: ["Private"],
@@ -233,21 +247,22 @@ Deno.test("chromeHistoryCsvToRecord - exclude by title contains", () => {
 });
 
 Deno.test("chromeHistoryCsvToRecord - handle invalid date format", () => {
-  const csvData = sampleCsvHeader +
+  const csvData = createCsvData([
     createCsvRow(
       "invalid",
       "10:00:00",
       "Invalid Date",
       "https://example.com/page1",
       "link",
-    ) +
+    ),
     createCsvRow(
       "1/1/2023",
       "10:01:00",
       "Valid Date",
       "https://example.com/page2",
       "link",
-    );
+    ),
+  ]);
 
   const exclusions: Exclusions = {};
   const result = chromeHistoryCsvToRecord(csvData, exclusions);
@@ -257,35 +272,36 @@ Deno.test("chromeHistoryCsvToRecord - handle invalid date format", () => {
 });
 
 Deno.test("chromeHistoryCsvToRecord - multiple exclusion rules", () => {
-  const csvData = sampleCsvHeader +
+  const csvData = createCsvData([
     createCsvRow(
       "1/1/2023",
       "10:00:00",
       "Private Page",
       "https://excluded.com/page",
       "link",
-    ) +
+    ),
     createCsvRow(
       "1/1/2023",
       "10:01:00",
       "Secret Page",
       "https://example.com/secret",
       "link",
-    ) +
+    ),
     createCsvRow(
       "1/1/2023",
       "10:02:00",
       "Notion Secret",
       "https://www.notion.so/workspace/Secret-1234567890abcdef1234567890abcdef",
       "link",
-    ) +
+    ),
     createCsvRow(
       "1/1/2023",
       "10:03:00",
       "Public Page",
       "https://example.com/public",
       "link",
-    );
+    ),
+  ]);
 
   const exclusions: Exclusions = {
     urlPrefixes: ["https://excluded.com"],
