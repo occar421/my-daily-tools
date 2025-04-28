@@ -19,10 +19,6 @@ export interface Environment {
   exit(code: number): never;
 }
 
-export interface UserInteraction {
-  confirm(message: string): boolean;
-}
-
 /**
  * Default implementation of FileSystem using Deno APIs
  */
@@ -67,7 +63,6 @@ export class DenoEnvironment implements Environment {
 export interface Services {
   fileSystem: FileSystem;
   environment: Environment;
-  userInteraction: UserInteraction;
 }
 
 /**
@@ -77,8 +72,5 @@ export function createDefaultServices(): Services {
   return {
     fileSystem: new DenoFileSystem(),
     environment: new DenoEnvironment(),
-    userInteraction: {
-      confirm: (message: string) => confirm(message),
-    },
   };
 }

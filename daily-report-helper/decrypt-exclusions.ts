@@ -1,9 +1,5 @@
 import { Decrypter } from "age-encryption";
-import {
-  handleFileNotFoundError,
-  loadConfig,
-  shouldProceedWithWrite,
-} from "./exclusions-utils.ts";
+import { handleFileNotFoundError, loadConfig } from "./exclusions-utils.ts";
 import { createDefaultServices, Services } from "./services.ts";
 import { getLogger } from "jsr:@std/log";
 
@@ -34,10 +30,8 @@ export async function decryptExclusions(services: Services) {
     );
     const plainTextData = await decrypter.decrypt(cypherBuffer);
 
-    if (await shouldProceedWithWrite(config.rawFilePath, services)) {
-      await services.fileSystem.writeFile(config.rawFilePath, plainTextData);
-      logger.info(`File successfully saved: ${config.rawFilePath}`);
-    }
+    await services.fileSystem.writeFile(config.rawFilePath, plainTextData);
+    logger.info(`File successfully saved: ${config.rawFilePath}`);
   } catch (error) {
     handleFileNotFoundError(error, config.cryptedFilePath, services);
   }

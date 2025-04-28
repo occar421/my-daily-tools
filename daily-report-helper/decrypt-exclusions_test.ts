@@ -1,16 +1,7 @@
 import { assertEquals } from "jsr:@std/assert";
-import { assertSpyCall, assertSpyCalls, Spy, spy } from "jsr:@std/testing/mock";
-import { Decrypter } from "age-encryption";
-import {
-  decryptExclusions,
-  initializeDecrypter,
-} from "./decrypt-exclusions.ts";
-import {
-  Environment,
-  FileSystem,
-  Services,
-  UserInteraction,
-} from "./services.ts";
+import { assertSpyCall, assertSpyCalls, spy } from "jsr:@std/testing/mock";
+import { initializeDecrypter } from "./decrypt-exclusions.ts";
+import { Services } from "./services.ts";
 import { createMockConfig, createMockServices } from "./test-utils.ts";
 
 // Test the initializeDecrypter function
@@ -115,9 +106,6 @@ Deno.test("decryptExclusions - decrypts file and writes to output", async () => 
           await services.fileSystem.writeFile(
             config.rawFilePath,
             plainTextData,
-          );
-          services.userInteraction.log(
-            `File successfully saved: ${config.rawFilePath}`,
           );
         }
       } catch (error) {

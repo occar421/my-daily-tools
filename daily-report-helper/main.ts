@@ -23,13 +23,13 @@ setup({
 
 const logger = getLogger();
 const services = createDefaultServices();
-const records: ReportRecord[] = [];
 
 const config = loadConfig(services);
-
 const exclusions = await getExclusions(config);
-
 const baseDir = join(import.meta.dirname ?? ".", "data");
+
+const records: ReportRecord[] = [];
+
 for await (
   const entry of Deno.readDir(baseDir)
 ) {

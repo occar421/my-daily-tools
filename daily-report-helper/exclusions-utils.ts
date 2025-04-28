@@ -141,32 +141,6 @@ export function loadConfig(services: Services): Config {
 }
 
 /**
- * Check if output file should be written
- * @param filePath Path to the file to check
- * @param services Services for file system and user interaction
- */
-export async function shouldProceedWithWrite(
-  filePath: string,
-  services: Services,
-): Promise<boolean> {
-  if (await services.fileSystem.exists(filePath)) {
-    logger.warn(`Warning: File '${filePath}' already exists.`);
-    const shouldOverwrite = services.userInteraction.confirm(
-      `Do you want to overwrite file '${filePath}'?`,
-    );
-
-    if (!shouldOverwrite) {
-      logger.info(
-        "Operation cancelled. File will not be overwritten.",
-      );
-      return false;
-    }
-    logger.info("Overwriting file...");
-  }
-  return true;
-}
-
-/**
  * Handle errors appropriately
  * @param error The error to handle
  * @param inputFile The file that caused the error

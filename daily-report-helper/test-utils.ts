@@ -27,9 +27,6 @@ export function createMockServices(): Services {
   return {
     fileSystem: mockFileSystem,
     environment: mockEnvironment,
-    userInteraction: {
-      confirm: (message: string) => true,
-    },
   };
 }
 

@@ -3,7 +3,6 @@ import {
   handleFileNotFoundError,
   loadConfig,
   parseExclusions,
-  shouldProceedWithWrite,
 } from "./exclusions-utils.ts";
 import { createDefaultServices, Services } from "./services.ts";
 import { getLogger } from "jsr:@std/log";
@@ -37,12 +36,8 @@ export async function encryptExclusions(
     const encrypter = initializeEncrypter(config.envVars.passphrase);
     const cipherBinary = await encrypter.encrypt(rawText);
 
-    if (await shouldProceedWithWrite(config.cryptedFilePath, services)) {
-      await services.fileSystem.writeFile(config.cryptedFilePath, cipherBinary);
-      logger.info(
-        `Encrypted file successfully saved: ${config.cryptedFilePath}`,
-      );
-    }
+    await services.fileSystem.writeFile(config.cryptedFilePath, cipherBinary);
+    logger.info(`Encrypted file successfully saved: ${config.cryptedFilePath}`);
   } catch (error) {
     handleFileNotFoundError(error, config.rawFilePath, services);
   }
