@@ -1,42 +1,7 @@
 import { assertEquals } from "jsr:@std/assert";
-import { spy, Spy, assertSpyCall, assertSpyCalls } from "jsr:@std/testing/mock";
-import { Encrypter } from "age-encryption";
-import { initializeEncrypter, encryptExclusions } from "./encrypt-exclusions.ts";
-import { Services, FileSystem, Environment } from "./services.ts";
-import { createMockServices, createMockConfig } from "./test-utils.ts";
-
-// Test the initializeEncrypter function
-Deno.test("initializeEncrypter - initializes encrypter with passphrase", () => {
-  // Create a mock Encrypter class
-  class MockEncrypter {
-    setPassphrase = spy(() => {});
-  }
-
-  // Create an instance of the mock
-  const mockEncrypterInstance = new MockEncrypter();
-
-  // Mock the Encrypter constructor
-  const originalEncrypter = globalThis.Encrypter;
-  // @ts-ignore - Mock the Encrypter class
-  globalThis.Encrypter = function() {
-    return mockEncrypterInstance;
-  };
-
-  try {
-    // Call the function
-    const encrypter = initializeEncrypter("test-passphrase");
-
-    // Verify that setPassphrase was called with the correct passphrase
-    assertSpyCalls(mockEncrypterInstance.setPassphrase, 1);
-    assertSpyCall(mockEncrypterInstance.setPassphrase, 0, {
-      args: ["test-passphrase"],
-    });
-  } finally {
-    // Restore the original Encrypter
-    // @ts-ignore - Restore the Encrypter class
-    globalThis.Encrypter = originalEncrypter;
-  }
-});
+import { assertSpyCall, assertSpyCalls, spy } from "jsr:@std/testing/mock";
+import { Services } from "./services.ts";
+import { createMockConfig, createMockServices } from "./test-utils.ts";
 
 // Test the encryptExclusions function
 Deno.test("encryptExclusions - encrypts file and writes to output", async () => {
@@ -48,7 +13,9 @@ Deno.test("encryptExclusions - encrypts file and writes to output", async () => 
 
   // Add spies to the mock services
   const readTextFileSpy = spy(mockServices.fileSystem, "readTextFile");
-  readTextFileSpy.mock(() => Promise.resolve('{"urlPrefixes": ["https://example.com"]}'));
+  readTextFileSpy.mock(() =>
+    Promise.resolve('{"urlPrefixes": ["https://example.com"]}')
+  );
 
   const writeFileSpy = spy(mockServices.fileSystem, "writeFile");
   writeFileSpy.mock(() => Promise.resolve());
@@ -71,7 +38,9 @@ Deno.test("encryptExclusions - encrypts file and writes to output", async () => 
     loadConfig: loadConfigSpy,
     parseExclusions: parseExclusionsSpy,
     shouldProceedWithWrite: () => Promise.resolve(true),
-    handleFileNotFoundError: () => { throw new Error("Mocked error"); },
+    handleFileNotFoundError: () => {
+      throw new Error("Mocked error");
+    },
   };
 
   // Mock Encrypter
@@ -82,7 +51,7 @@ Deno.test("encryptExclusions - encrypts file and writes to output", async () => 
   }
   const mockEncrypterInstance = new MockEncrypter();
   // @ts-ignore - Mock Encrypter
-  globalThis.Encrypter = function() {
+  globalThis.Encrypter = function () {
     return mockEncrypterInstance;
   };
 
@@ -93,17 +62,28 @@ Deno.test("encryptExclusions - encrypts file and writes to output", async () => 
       const config = mockExclusionsUtils.loadConfig(services);
 
       try {
-        const rawText = await services.fileSystem.readTextFile(config.rawFilePath);
+        const rawText = await services.fileSystem.readTextFile(
+          config.rawFilePath,
+        );
         mockExclusionsUtils.parseExclusions(rawText, services);
 
         const encrypter = initializeEncrypter(config.envVars.passphrase);
         const cipherBinary = await encrypter.encrypt(rawText);
 
         // We'll skip the shouldProceedWithWrite check for simplicity
-        await services.fileSystem.writeFile(config.cryptedFilePath, cipherBinary);
-        console.log(`Encrypted file successfully saved: ${config.cryptedFilePath}`);
+        await services.fileSystem.writeFile(
+          config.cryptedFilePath,
+          cipherBinary,
+        );
+        console.log(
+          `Encrypted file successfully saved: ${config.cryptedFilePath}`,
+        );
       } catch (error) {
-        mockExclusionsUtils.handleFileNotFoundError(error, config.rawFilePath, services);
+        mockExclusionsUtils.handleFileNotFoundError(
+          error,
+          config.rawFilePath,
+          services,
+        );
       }
     };
 
@@ -170,9 +150,11 @@ Deno.test("encryptExclusions - handles file not found error", async () => {
 
   // Create a spy for handleFileNotFoundError
   const handleFileNotFoundErrorSpy = spy();
-  handleFileNotFoundErrorSpy.mock((error: unknown, inputFile: string, services: Services) => {
-    throw new Error("Mocked file not found error");
-  });
+  handleFileNotFoundErrorSpy.mock(
+    (error: unknown, inputFile: string, services: Services) => {
+      throw new Error("Mocked file not found error");
+    },
+  );
 
   // Create a mock module for exclusions-utils
   const mockExclusionsUtils = {
@@ -189,10 +171,16 @@ Deno.test("encryptExclusions - handles file not found error", async () => {
       const config = mockExclusionsUtils.loadConfig(services);
 
       try {
-        const rawText = await services.fileSystem.readTextFile(config.rawFilePath);
+        const rawText = await services.fileSystem.readTextFile(
+          config.rawFilePath,
+        );
         // This will throw because readTextFile is mocked to throw
       } catch (error) {
-        mockExclusionsUtils.handleFileNotFoundError(error, config.rawFilePath, services);
+        mockExclusionsUtils.handleFileNotFoundError(
+          error,
+          config.rawFilePath,
+          services,
+        );
       }
     };
 
@@ -207,7 +195,11 @@ Deno.test("encryptExclusions - handles file not found error", async () => {
     // Verify that handleFileNotFoundError was called
     assertSpyCalls(handleFileNotFoundErrorSpy, 1);
     assertSpyCall(handleFileNotFoundErrorSpy, 0, {
-      args: [new Deno.errors.NotFound("File not found"), mockConfig.rawFilePath, mockServices],
+      args: [
+        new Deno.errors.NotFound("File not found"),
+        mockConfig.rawFilePath,
+        mockServices,
+      ],
     });
   } finally {
     // Restore spies
@@ -242,7 +234,9 @@ Deno.test("encryptExclusions - handles validation error", async () => {
     loadConfig: loadConfigSpy,
     parseExclusions: parseExclusionsSpy,
     shouldProceedWithWrite: () => Promise.resolve(true),
-    handleFileNotFoundError: () => { throw new Error("Mocked error"); },
+    handleFileNotFoundError: () => {
+      throw new Error("Mocked error");
+    },
   };
 
   try {
@@ -252,7 +246,9 @@ Deno.test("encryptExclusions - handles validation error", async () => {
       const config = mockExclusionsUtils.loadConfig(services);
 
       try {
-        const rawText = await services.fileSystem.readTextFile(config.rawFilePath);
+        const rawText = await services.fileSystem.readTextFile(
+          config.rawFilePath,
+        );
         mockExclusionsUtils.parseExclusions(rawText, services);
         // This will throw because parseExclusions is mocked to throw
       } catch (error) {

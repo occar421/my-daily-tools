@@ -17,6 +17,7 @@ export function createMockServices(): Services {
 
   return {
     fileSystem: mockFileSystem,
+    cryptoSystem: mockFileSystem,
   };
 }
 

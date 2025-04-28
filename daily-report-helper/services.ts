@@ -1,4 +1,5 @@
 import { exists } from "jsr:@std/fs/exists";
+import { Decrypter, Encrypter } from "age-encryption";
 
 /**
  * Interface for file system operations
@@ -8,6 +9,11 @@ export interface FileSystem {
   readFile(path: string): Promise<Uint8Array>;
   writeFile(path: string, data: Uint8Array): Promise<void>;
   exists(path: string): Promise<boolean>;
+}
+
+export interface CryptoSystem {
+  encrypt(data: Uint8Array | string): Promise<Uint8Array>;
+  decrypt(data: Uint8Array): Promise<Uint8Array>;
 }
 
 /**
@@ -31,18 +37,46 @@ export class DenoFileSystem implements FileSystem {
   }
 }
 
+export class AgeCryptoSystem implements CryptoSystem {
+  passphrase: string;
+  encrypter: Encrypter;
+  decrypter: Decrypter;
+
+  constructor(passphrase: string) {
+    this.passphrase = passphrase;
+
+    this.encrypter = new Encrypter();
+    this.encrypter.setPassphrase(passphrase);
+
+    this.decrypter = new Decrypter();
+    this.decrypter.addPassphrase(passphrase);
+  }
+
+  async encrypt(data: Uint8Array | string): Promise<Uint8Array> {
+    return await this.encrypter.encrypt(data);
+  }
+
+  async decrypt(data: Uint8Array): Promise<Uint8Array> {
+    return await this.decrypter.decrypt(data);
+  }
+}
+
 /**
  * Container for all services
  */
 export interface Services {
   fileSystem: FileSystem;
+  cryptoSystem: CryptoSystem;
 }
 
 /**
  * Create default services using Deno APIs
  */
-export function createDefaultServices(): Services {
+export function createDefaultServices(
+  settings: { crypto: { passphrase: string } },
+): Services {
   return {
     fileSystem: new DenoFileSystem(),
+    cryptoSystem: new AgeCryptoSystem(settings.crypto.passphrase),
   };
 }

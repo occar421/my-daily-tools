@@ -1,38 +1,7 @@
 import { assertEquals } from "jsr:@std/assert";
 import { assertSpyCall, assertSpyCalls, spy } from "jsr:@std/testing/mock";
-import { initializeDecrypter } from "./decrypt-exclusions.ts";
 import { Services } from "./services.ts";
 import { createMockConfig, createMockServices } from "./test-utils.ts";
-
-// Test the initializeDecrypter function
-Deno.test("initializeDecrypter - initializes decrypter with passphrase", () => {
-  // Create a mock Decrypter class
-  class MockDecrypter {
-    addPassphrase = spy(() => {});
-  }
-
-  // Create an instance of the mock
-  const mockDecrypterInstance = new MockDecrypter();
-
-  // Mock the Decrypter constructor
-  const originalDecrypter = globalThis.Decrypter;
-  // @ts-ignore - Mock the Decrypter class
-  globalThis.Decrypter = function () {
-    return mockDecrypterInstance;
-  };
-
-  try {
-    // Verify that addPassphrase was called with the correct passphrase
-    assertSpyCalls(mockDecrypterInstance.addPassphrase, 1);
-    assertSpyCall(mockDecrypterInstance.addPassphrase, 0, {
-      args: ["test-passphrase"],
-    });
-  } finally {
-    // Restore the original Decrypter
-    // @ts-ignore - Restore the Decrypter class
-    globalThis.Decrypter = originalDecrypter;
-  }
-});
 
 // Test the decryptExclusions function
 Deno.test("decryptExclusions - decrypts file and writes to output", async () => {
