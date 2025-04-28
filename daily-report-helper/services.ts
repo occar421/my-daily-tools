@@ -1,3 +1,5 @@
+import { exists } from "jsr:@std/fs/exists";
+
 /**
  * Interface for file system operations
  */
@@ -17,6 +19,10 @@ export interface Environment {
   exit(code: number): never;
 }
 
+export interface UserInteraction {
+  confirm(message: string): boolean;
+}
+
 /**
  * Default implementation of FileSystem using Deno APIs
  */
@@ -34,15 +40,7 @@ export class DenoFileSystem implements FileSystem {
   }
 
   async exists(path: string): Promise<boolean> {
-    try {
-      await Deno.stat(path);
-      return true;
-    } catch (error) {
-      if (error instanceof Deno.errors.NotFound) {
-        return false;
-      }
-      throw error;
-    }
+    return await exists(path);
   }
 }
 
@@ -69,6 +67,7 @@ export class DenoEnvironment implements Environment {
 export interface Services {
   fileSystem: FileSystem;
   environment: Environment;
+  userInteraction: UserInteraction;
 }
 
 /**
@@ -78,5 +77,8 @@ export function createDefaultServices(): Services {
   return {
     fileSystem: new DenoFileSystem(),
     environment: new DenoEnvironment(),
+    userInteraction: {
+      confirm: (message: string) => confirm(message),
+    },
   };
 }

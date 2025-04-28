@@ -1,13 +1,13 @@
 import { Config, Exclusions, exclusionsSchema } from "./types.ts";
 import JSON5 from "json5";
 import { parseArgs } from "jsr:@std/cli/parse-args";
-import { Services, createDefaultServices } from "./services.ts";
+import { Services } from "./services.ts";
+import { getLogger } from "jsr:@std/log";
 
 // Constant for the hour offset used for date calculations
 const HOUR_OFFSET = 7;
 
-// Default services instance
-const defaultServices = createDefaultServices();
+const logger = getLogger();
 
 /**
  * Validate and create a Date object from a date string
@@ -67,7 +67,7 @@ function getEndEpochFromDateString(dateStr?: string): number | undefined {
  * @throws Error if startDate is not provided
  */
 function parseDateRangeFromArgs(
-  services: Services = defaultServices
+  services: Services,
 ): { startEpoch: number; endEpoch?: number } {
   // Parse command line arguments for start and end dates
   const args = parseArgs(services.environment.getArgs(), {
@@ -93,11 +93,11 @@ function parseDateRangeFromArgs(
   }
 
   // Log the date range being used for filtering
-  services.userInteraction.log("Filtering records by date range:");
+  logger.info("Filtering records by date range:");
   // Use the original input date string instead of converting from epoch to avoid timezone issues
   const startDateStr = args.startDate;
   const startTimeStr = `${HOUR_OFFSET.toString().padStart(2, "0")}:00:00`;
-  services.userInteraction.log(
+  logger.info(
     `  Start date: ${startDateStr} (from ${startTimeStr})`,
   );
 
@@ -106,7 +106,7 @@ function parseDateRangeFromArgs(
     const endDateStr = args.endDate;
     const prevHour = (HOUR_OFFSET - 1).toString().padStart(2, "0");
     const endTimeStr = `${prevHour}:59:59.999`;
-    services.userInteraction.log(
+    logger.info(
       `  End date: ${endDateStr} (until ${endTimeStr} of the next day)`,
     );
   }
@@ -121,7 +121,7 @@ function parseDateRangeFromArgs(
  * Load and validate environment settings
  * @param services Services for environment and user interaction
  */
-export function loadConfig(services: Services = defaultServices): Config {
+export function loadConfig(services: Services): Config {
   const rawFilePath = "exclusions.json5";
   const cryptedFilePath = `${rawFilePath}.age`;
   const passphrase = loadPassphrase(services);
@@ -147,19 +147,21 @@ export function loadConfig(services: Services = defaultServices): Config {
  */
 export async function shouldProceedWithWrite(
   filePath: string,
-  services: Services = defaultServices
+  services: Services,
 ): Promise<boolean> {
   if (await services.fileSystem.exists(filePath)) {
-    services.userInteraction.warn(`Warning: File '${filePath}' already exists.`);
+    logger.warn(`Warning: File '${filePath}' already exists.`);
     const shouldOverwrite = services.userInteraction.confirm(
       `Do you want to overwrite file '${filePath}'?`,
     );
 
     if (!shouldOverwrite) {
-      services.userInteraction.log("Operation cancelled. File will not be overwritten.");
+      logger.info(
+        "Operation cancelled. File will not be overwritten.",
+      );
       return false;
     }
-    services.userInteraction.log("Overwriting file...");
+    logger.info("Overwriting file...");
   }
   return true;
 }
@@ -173,13 +175,13 @@ export async function shouldProceedWithWrite(
 export function handleFileNotFoundError(
   error: unknown,
   inputFile: string,
-  services: Services = defaultServices
+  services: Services,
 ): never {
   if (error instanceof Deno.errors.NotFound) {
-    services.userInteraction.error(`Error: File '${inputFile}' not found.`);
+    logger.error(`Error: File '${inputFile}' not found.`);
     return services.environment.exit(1);
   } else {
-    services.userInteraction.error(
+    logger.error(
       `Unexpected error occurred: ${
         error instanceof Error ? error.message : String(error)
       }`,
@@ -192,7 +194,7 @@ export function handleFileNotFoundError(
  * Load and validate passphrase from environment
  * @param services Services for environment access
  */
-function loadPassphrase(services: Services = defaultServices): string {
+function loadPassphrase(services: Services): string {
   const passphrase = services.environment.getEnv("PASSPHRASE");
   if (!passphrase) {
     throw new Error("Environment variable 'PASSPHRASE' is not set");
@@ -207,16 +209,19 @@ function loadPassphrase(services: Services = defaultServices): string {
  */
 export function parseExclusions(
   rawText: string,
-  services: Services = defaultServices
+  services: Services,
 ): Exclusions {
   // Validate JSON5 data before encrypting
   try {
     const parsedJson = JSON5.parse(rawText);
     const parsedExclusions = exclusionsSchema.parse(parsedJson);
-    services.userInteraction.log("Exclusions data validation successful");
+    logger.info("Exclusions data validation successful");
     return parsedExclusions;
   } catch (validationError) {
-    services.userInteraction.error("Error validating exclusions data:", String(validationError));
+    logger.error(
+      "Error validating exclusions data:",
+      String(validationError),
+    );
     return services.environment.exit(1);
   }
 }

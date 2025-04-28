@@ -5,7 +5,10 @@ import {
   parseExclusions,
   shouldProceedWithWrite,
 } from "./exclusions-utils.ts";
-import { Services, createDefaultServices } from "./services.ts";
+import { createDefaultServices, Services } from "./services.ts";
+import { getLogger } from "jsr:@std/log";
+
+const logger = getLogger();
 
 /**
  * Initialize encryption tool
@@ -21,7 +24,9 @@ export function initializeEncrypter(passphrase: string): Encrypter {
  * Encrypt configuration file
  * @param services Services for file system, environment, and user interaction
  */
-export async function encryptExclusions(services: Services = createDefaultServices()) {
+export async function encryptExclusions(
+  services: Services,
+) {
   // Load configuration once and use its values throughout
   const config = loadConfig(services);
 
@@ -34,7 +39,9 @@ export async function encryptExclusions(services: Services = createDefaultServic
 
     if (await shouldProceedWithWrite(config.cryptedFilePath, services)) {
       await services.fileSystem.writeFile(config.cryptedFilePath, cipherBinary);
-      console.log(`Encrypted file successfully saved: ${config.cryptedFilePath}`);
+      logger.info(
+        `Encrypted file successfully saved: ${config.cryptedFilePath}`,
+      );
     }
   } catch (error) {
     handleFileNotFoundError(error, config.rawFilePath, services);
@@ -43,5 +50,5 @@ export async function encryptExclusions(services: Services = createDefaultServic
 
 // Only run the main function if this is the main module
 if (import.meta.main) {
-  await encryptExclusions();
+  await encryptExclusions(createDefaultServices());
 }

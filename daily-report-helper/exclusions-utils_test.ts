@@ -1,15 +1,19 @@
-import { assertEquals, assertThrows, assertRejects } from "jsr:@std/assert";
-import { assertSpyCalls, assertSpyCall, spy } from "jsr:@std/testing/mock";
-import { FakeTime } from "jsr:@std/testing/time";
-import { Config, Exclusions } from "./types.ts";
+import { assertEquals, assertRejects, assertThrows } from "jsr:@std/assert";
+import { assertSpyCall, assertSpyCalls, spy } from "jsr:@std/testing/mock";
+
 import {
   handleFileNotFoundError,
   loadConfig,
   parseExclusions,
   shouldProceedWithWrite,
 } from "./exclusions-utils.ts";
-import { Services, FileSystem, Environment, UserInteraction } from "./services.ts";
-import { createMockServices, createMockConfig } from "./test-utils.ts";
+import {
+  Environment,
+  FileSystem,
+  Services,
+  UserInteraction,
+} from "./services.ts";
+import { createMockConfig, createMockServices } from "./test-utils.ts";
 
 // Mock for testing functions that use Deno.env
 const originalEnv = Deno.env;
@@ -39,7 +43,9 @@ Deno.test("parseExclusions - valid data", () => {
   const mockEnvironment: Environment = {
     getEnv: spy(() => "test-passphrase"),
     getArgs: spy(() => ["--startDate", "2023-01-01"]),
-    exit: spy((code) => { throw new Error(`Exit with code ${code}`); }),
+    exit: spy((code) => {
+      throw new Error(`Exit with code ${code}`);
+    }),
   };
 
   const mockFileSystem: FileSystem = {
@@ -76,7 +82,9 @@ Deno.test("parseExclusions - invalid data", () => {
   errorSpy.mock(() => {});
 
   const exitSpy = spy(mockServices.environment, "exit");
-  exitSpy.mock((code) => { throw new Error(`Exit with code ${code}`); });
+  exitSpy.mock((code) => {
+    throw new Error(`Exit with code ${code}`);
+  });
 
   try {
     parseExclusions(invalidJson, mockServices);
@@ -101,16 +109,15 @@ Deno.test("handleFileNotFoundError - NotFound error", () => {
 
   // Create mock services
   const mockUserInteraction: UserInteraction = {
-    log: spy(() => {}),
-    warn: spy(() => {}),
-    error: spy(() => {}),
     confirm: spy(() => true),
   };
 
   const mockEnvironment: Environment = {
     getEnv: spy(() => "test-passphrase"),
     getArgs: spy(() => ["--startDate", "2023-01-01"]),
-    exit: spy((code) => { throw new Error(`Exit with code ${code}`); }),
+    exit: spy((code) => {
+      throw new Error(`Exit with code ${code}`);
+    }),
   };
 
   const mockFileSystem: FileSystem = {
@@ -133,7 +140,6 @@ Deno.test("handleFileNotFoundError - NotFound error", () => {
     assertEquals(error.message, "Exit with code 1");
   }
 
-  assertSpyCalls(mockUserInteraction.error, 1);
   assertSpyCalls(mockEnvironment.exit, 1);
   assertSpyCall(mockEnvironment.exit, 0, {
     args: [1],
@@ -154,7 +160,9 @@ Deno.test("handleFileNotFoundError - other error", () => {
   const mockEnvironment: Environment = {
     getEnv: spy(() => "test-passphrase"),
     getArgs: spy(() => ["--startDate", "2023-01-01"]),
-    exit: spy((code) => { throw new Error(`Exit with code ${code}`); }),
+    exit: spy((code) => {
+      throw new Error(`Exit with code ${code}`);
+    }),
   };
 
   const mockFileSystem: FileSystem = {
@@ -173,7 +181,7 @@ Deno.test("handleFileNotFoundError - other error", () => {
   assertThrows(
     () => handleFileNotFoundError(error, "test-file.txt", mockServices),
     Error,
-    "Some other error"
+    "Some other error",
   );
 
   assertSpyCalls(mockUserInteraction.error, 1);
@@ -182,16 +190,15 @@ Deno.test("handleFileNotFoundError - other error", () => {
 Deno.test("shouldProceedWithWrite - file exists and user confirms", async () => {
   // Create mock services
   const mockUserInteraction: UserInteraction = {
-    log: spy(() => {}),
-    warn: spy(() => {}),
-    error: spy(() => {}),
     confirm: spy(() => true),
   };
 
   const mockEnvironment: Environment = {
     getEnv: spy(() => "test-passphrase"),
     getArgs: spy(() => ["--startDate", "2023-01-01"]),
-    exit: spy((code) => { throw new Error(`Exit with code ${code}`); }),
+    exit: spy((code) => {
+      throw new Error(`Exit with code ${code}`);
+    }),
   };
 
   const mockFileSystem: FileSystem = {
@@ -210,9 +217,7 @@ Deno.test("shouldProceedWithWrite - file exists and user confirms", async () => 
   const result = await shouldProceedWithWrite("test-file.txt", mockServices);
   assertEquals(result, true);
   assertSpyCalls(mockFileSystem.exists, 1);
-  assertSpyCalls(mockUserInteraction.warn, 1);
   assertSpyCalls(mockUserInteraction.confirm, 1);
-  assertSpyCalls(mockUserInteraction.log, 1);
 });
 
 Deno.test("shouldProceedWithWrite - file exists and user cancels", async () => {
@@ -227,7 +232,9 @@ Deno.test("shouldProceedWithWrite - file exists and user cancels", async () => {
   const mockEnvironment: Environment = {
     getEnv: spy(() => "test-passphrase"),
     getArgs: spy(() => ["--startDate", "2023-01-01"]),
-    exit: spy((code) => { throw new Error(`Exit with code ${code}`); }),
+    exit: spy((code) => {
+      throw new Error(`Exit with code ${code}`);
+    }),
   };
 
   const mockFileSystem: FileSystem = {
@@ -246,24 +253,21 @@ Deno.test("shouldProceedWithWrite - file exists and user cancels", async () => {
   const result = await shouldProceedWithWrite("test-file.txt", mockServices);
   assertEquals(result, false);
   assertSpyCalls(mockFileSystem.exists, 1);
-  assertSpyCalls(mockUserInteraction.warn, 1);
   assertSpyCalls(mockUserInteraction.confirm, 1);
-  assertSpyCalls(mockUserInteraction.log, 1);
 });
 
 Deno.test("shouldProceedWithWrite - file does not exist", async () => {
   // Create mock services
   const mockUserInteraction: UserInteraction = {
-    log: spy(() => {}),
-    warn: spy(() => {}),
-    error: spy(() => {}),
     confirm: spy(() => true),
   };
 
   const mockEnvironment: Environment = {
     getEnv: spy(() => "test-passphrase"),
     getArgs: spy(() => ["--startDate", "2023-01-01"]),
-    exit: spy((code) => { throw new Error(`Exit with code ${code}`); }),
+    exit: spy((code) => {
+      throw new Error(`Exit with code ${code}`);
+    }),
   };
 
   const mockFileSystem: FileSystem = {
@@ -282,9 +286,7 @@ Deno.test("shouldProceedWithWrite - file does not exist", async () => {
   const result = await shouldProceedWithWrite("test-file.txt", mockServices);
   assertEquals(result, true);
   assertSpyCalls(mockFileSystem.exists, 1);
-  assertSpyCalls(mockUserInteraction.warn, 0);
   assertSpyCalls(mockUserInteraction.confirm, 0);
-  assertSpyCalls(mockUserInteraction.log, 0);
 });
 
 Deno.test("loadConfig - with valid environment", () => {
@@ -299,7 +301,9 @@ Deno.test("loadConfig - with valid environment", () => {
   const mockEnvironment: Environment = {
     getEnv: spy((key) => key === "PASSPHRASE" ? "test-passphrase" : undefined),
     getArgs: spy(() => ["--startDate", "2023-01-01"]),
-    exit: spy((code) => { throw new Error(`Exit with code ${code}`); }),
+    exit: spy((code) => {
+      throw new Error(`Exit with code ${code}`);
+    }),
   };
 
   const mockFileSystem: FileSystem = {
@@ -330,16 +334,15 @@ Deno.test("loadConfig - with valid environment", () => {
 Deno.test("loadConfig - without passphrase", () => {
   // Create mock services with environment that returns null for PASSPHRASE
   const mockUserInteraction: UserInteraction = {
-    log: spy(() => {}),
-    warn: spy(() => {}),
-    error: spy(() => {}),
     confirm: spy(() => true),
   };
 
   const mockEnvironment: Environment = {
     getEnv: spy(() => undefined),
     getArgs: spy(() => ["--startDate", "2023-01-01"]),
-    exit: spy((code) => { throw new Error(`Exit with code ${code}`); }),
+    exit: spy((code) => {
+      throw new Error(`Exit with code ${code}`);
+    }),
   };
 
   const mockFileSystem: FileSystem = {
@@ -358,7 +361,7 @@ Deno.test("loadConfig - without passphrase", () => {
   assertThrows(
     () => loadConfig(mockServices),
     Error,
-    "Environment variable 'PASSPHRASE' is not set"
+    "Environment variable 'PASSPHRASE' is not set",
   );
   assertSpyCalls(mockEnvironment.getEnv, 1);
 });

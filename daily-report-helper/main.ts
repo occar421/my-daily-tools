@@ -1,12 +1,31 @@
 import { join, parse as parsePath } from "jsr:@std/path";
+import { ConsoleHandler, getLogger, setup } from "jsr:@std/log";
 import { chromeHistoryCsvToRecord } from "./chromeHistoryCsvToRecord.ts";
 import type { Config, Exclusions, ReportRecord } from "./types.ts";
 import { loadConfig, parseExclusions } from "./exclusions-utils.ts";
 import { Decrypter } from "age-encryption";
+import { createDefaultServices } from "./services.ts";
 
+// Configure logging
+setup({
+  handlers: {
+    default: new ConsoleHandler("DEBUG", {
+      formatter: ({ levelName, msg }) => `${levelName} - ${msg}`,
+    }),
+  },
+  loggers: {
+    default: {
+      level: "DEBUG",
+      handlers: ["default"],
+    },
+  },
+});
+
+const logger = getLogger();
+const services = createDefaultServices();
 const records: ReportRecord[] = [];
 
-const config = loadConfig();
+const config = loadConfig(services);
 
 const exclusions = await getExclusions(config);
 
@@ -31,7 +50,7 @@ for await (
         continue;
     }
 
-    console.log("Read file: ", parsedPath.base);
+    logger.info(`Read file: ${parsedPath.base}`);
   }
 }
 
@@ -56,7 +75,7 @@ const filteredRecords = filterRecordsByEpochRange(
   config.endEpoch,
 );
 
-console.debug("Filtered Records: ", filteredRecords);
+logger.debug("Filtered Records: ", filteredRecords);
 
 async function getExclusions(config: Config): Promise<Exclusions> {
   const decrypter = new Decrypter();
@@ -66,7 +85,7 @@ async function getExclusions(config: Config): Promise<Exclusions> {
   const plainTextData = await decrypter.decrypt(cypherBuffer);
   const text = new TextDecoder().decode(plainTextData);
 
-  return parseExclusions(text);
+  return parseExclusions(text, services);
 }
 
 // Filter records by epoch range (startEpoch is required, endEpoch is optional)

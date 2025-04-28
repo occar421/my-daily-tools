@@ -1,8 +1,10 @@
 import { parse as parseCsv } from "jsr:@std/csv";
+import { getLogger } from "jsr:@std/log";
 import type { Exclusions, ReportRecord } from "./types.ts";
 
 const LOOK_BACK_RECORDS = 10;
 const LOOK_BACK_RANGE = [...Array(LOOK_BACK_RECORDS).keys()].map((x) => x + 1);
+const logger = getLogger();
 
 /**
  * Function to create records from CSV text
@@ -101,7 +103,7 @@ export function chromeHistoryCsvToRecord(
         isNaN(year) || isNaN(month) || isNaN(day) ||
         isNaN(hour) || isNaN(minute) || isNaN(second)
       ) {
-        console.error(`Invalid date format: ${row.date} ${row.time}`);
+        logger.error(`Invalid date format: ${row.date} ${row.time}`);
         continue;
       }
 
@@ -116,7 +118,7 @@ export function chromeHistoryCsvToRecord(
         meta: row.url,
       });
     } catch (error) {
-      console.error(`Date conversion error: ${row.date} ${row.time}`, error);
+      logger.error(`Date conversion error: ${row.date} ${row.time}`, error);
     }
   }
 

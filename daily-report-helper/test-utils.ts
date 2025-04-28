@@ -1,7 +1,7 @@
 /**
  * Test utilities for mocking modules and services
  */
-import { Services, FileSystem, Environment } from "./services.ts";
+import { Environment, FileSystem, Services } from "./services.ts";
 import { Config } from "./types.ts";
 
 /**
@@ -9,9 +9,12 @@ import { Config } from "./types.ts";
  */
 export function createMockServices(): Services {
   const mockEnvironment: Environment = {
-    getEnv: (key: string) => key === "PASSPHRASE" ? "test-passphrase" : undefined,
+    getEnv: (key: string) =>
+      key === "PASSPHRASE" ? "test-passphrase" : undefined,
     getArgs: () => ["--startDate", "2023-01-01"],
-    exit: (code: number) => { throw new Error(`Exit with code ${code}`); },
+    exit: (code: number) => {
+      throw new Error(`Exit with code ${code}`);
+    },
   };
 
   const mockFileSystem: FileSystem = {
@@ -24,6 +27,9 @@ export function createMockServices(): Services {
   return {
     fileSystem: mockFileSystem,
     environment: mockEnvironment,
+    userInteraction: {
+      confirm: (message: string) => true,
+    },
   };
 }
 
@@ -38,19 +44,5 @@ export function createMockConfig(): Config {
       passphrase: "test-passphrase",
     },
     startEpoch: 1672531200000, // 2023-01-01 00:00:00
-  };
-}
-
-/**
- * Create a mock exclusions-utils module for testing
- */
-export function createMockExclusionsUtils() {
-  return {
-    loadConfig: () => createMockConfig(),
-    parseExclusions: () => ({ urlPrefixes: ["https://example.com"] }),
-    shouldProceedWithWrite: () => Promise.resolve(true),
-    handleFileNotFoundError: (error: unknown, inputFile: string) => {
-      throw new Error("Mocked file not found error");
-    },
   };
 }
