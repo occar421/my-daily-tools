@@ -52,7 +52,6 @@ for await (
       records.push(
         ...browserHistoryCsvToRecord(
           text,
-          exclusions,
         ),
       );
     } else if (parsedPath.name.startsWith("slack_messages")) {
@@ -90,8 +89,76 @@ const filteredRecords = filterRecordsByEpochRange(
   config.endEpoch,
 );
 
+const excludedRecords = [];
+
+for (const record of filteredRecords) {
+  if (record instanceof BrowserReportRecord) {
+    // Skip based on URL prefixes from exclusions
+    if (
+      exclusions.urlPrefixes?.some((prefix) => record.url.startsWith(prefix))
+    ) {
+      continue;
+    }
+
+    // Skip based on URL substrings from exclusions
+    if (exclusions.urlContains?.some((prefix) => record.url.includes(prefix))) {
+      continue;
+    }
+
+    // // Check for Notion IDs
+    const notionMatch = record.url.match(
+      /https:\/\/www.notion.so\/.*?-?([0-9a-f]{32})/,
+    );
+    if (notionMatch) {
+      const notionId = notionMatch[1];
+      // Skip if this Notion ID is in exclusions
+      if (
+        exclusions.notionIds?.includes(notionId)
+      ) {
+        continue;
+      }
+    }
+
+    // Skip if the Notion title matches any of the exclusion patterns
+    if (
+      exclusions.titleContains?.some((pattern) =>
+        normalize(record.title).includes(normalize(pattern))
+      )
+    ) {
+      continue;
+    }
+
+    excludedRecords.push(record);
+  } else if (record instanceof SlackReportRecord) {
+    // TODO exclude for Slack messages
+
+    excludedRecords.push(record);
+  }
+}
+
 // レコードを日付ごとに分割
-const recordsByDay = splitRecordsByDay(filteredRecords);
+const recordsByDay = splitRecordsByDay(excludedRecords);
+
+const distinctRecordsByDay = new Map<string, ReportRecord[]>();
+
+for (const [date, records] of recordsByDay.entries()) {
+  const map = new Map<string, ReportRecord>();
+  for (const record of records) {
+    if (record instanceof BrowserReportRecord) {
+      if (map.has(record.url)) {
+        continue;
+      }
+      map.set(record.url, record);
+    } else if (record instanceof SlackReportRecord) {
+      map.set(record.message, record);
+    }
+  }
+
+  distinctRecordsByDay.set(
+    date,
+    [...map.values()].sort((a, b) => a.epoch - b.epoch),
+  );
+}
 
 function formatRecordsToMarkdown(
   date: string,
@@ -116,7 +183,7 @@ function formatRecordsToMarkdown(
 }
 
 logger.info(`レコードを${recordsByDay.size}日分に分割しました`);
-for (const [date, records] of recordsByDay.entries()) {
+for (const [date, records] of distinctRecordsByDay.entries()) {
   const content = formatRecordsToMarkdown(date, records);
   const filePath = join(import.meta.dirname ?? ".", "out", `${date}.md`);
   await services.fileSystem.writeTextFile(filePath, content);
@@ -147,4 +214,8 @@ export function filterRecordsByEpochRange(
     const isBeforeEnd = endEpoch === undefined || record.epoch <= endEpoch;
     return isAfterStart && isBeforeEnd;
   });
+}
+
+function normalize(text: string | undefined): string {
+  return text?.replace(/[\uE000-\uF8FF]/g, "").toUpperCase() ?? "";
 }

@@ -1,16 +1,14 @@
 import { parse as parseCsv } from "jsr:@std/csv";
 import { getLogger } from "jsr:@std/log";
-import { BrowserReportRecord, Exclusions } from "./types.ts";
+import { BrowserReportRecord } from "./types.ts";
 
 /**
  * Function to create records from CSV text
  * @param text CSV text
- * @param exclusions Configuration object containing patterns and rules for excluding records
  * @returns Array of extracted Record type objects
  */
 export function browserHistoryCsvToRecord(
   text: string,
-  exclusions: Exclusions,
 ): BrowserReportRecord[] {
   const logger = getLogger();
 
@@ -33,6 +31,7 @@ export function browserHistoryCsvToRecord(
     }
 
     let title = row.title.trim();
+    let url = new URL(row.url.trim());
 
     // Skip if title is empty
     if (title === "") {
@@ -40,42 +39,28 @@ export function browserHistoryCsvToRecord(
     }
 
     // Remove notification count from Notion titles
-    if (row.url.startsWith("https://www.notion.so/")) {
-      title = row.title.replace(/^\((\d+\+?)\)\s/, "");
-    }
-
-    // Skip based on URL prefixes from exclusions
-    if (exclusions.urlPrefixes?.some((prefix) => row.url.startsWith(prefix))) {
-      continue;
-    }
-
-    // Skip based on URL substrings from exclusions
-    if (exclusions.urlContains?.some((prefix) => row.url.includes(prefix))) {
-      continue;
-    }
-
-    // // Check for Notion IDs
-    const notionMatch = row.url.match(
+    const notionMatch = url.href.match(
       /https:\/\/www.notion.so\/.*?-?([0-9a-f]{32})/,
     );
     if (notionMatch) {
-      const notionId = notionMatch[1];
-      // Skip if this Notion ID is in exclusions
-      if (
-        exclusions.notionIds?.includes(notionId)
-      ) {
-        continue;
-      }
+      title = row.title.replace(/^\((\d+\+?)\)\s/, "");
+      url = new URL(`https://www.notion.so/${notionMatch[1]}`);
     }
 
-    // Skip if the Notion title matches any of the exclusion patterns
-    if (
-      exclusions.titleContains?.some((pattern) =>
-        normalize(title).includes(normalize(pattern))
-      )
-    ) {
-      continue;
+    const githubPrMatch = url.href.match(
+      /https:\/\/github.com\/(.*?)\/(.*?)\/pull\/(\d+)/,
+    );
+    if (githubPrMatch) {
+      url = new URL(
+        `https://github.com/${githubPrMatch[1]}/${githubPrMatch[2]}/pull/${
+          githubPrMatch[3]
+        }`,
+      );
     }
+
+    // Remove search params and hash
+    url.search = "";
+    url.hash = "";
 
     try {
       // Calculate epoch time from date and time
@@ -96,15 +81,11 @@ export function browserHistoryCsvToRecord(
       const epoch = dateObj.getTime();
 
       // Create Record object and add it to the array
-      records.push(new BrowserReportRecord(epoch, title, row.url));
+      records.push(new BrowserReportRecord(epoch, title, url.href));
     } catch (error) {
       logger.error(`Date conversion error: ${row.date} ${row.time}`, error);
     }
   }
 
   return records;
-}
-
-function normalize(text: string | undefined): string {
-  return text?.replace(/[\uE000-\uF8FF]/g, "").toUpperCase() ?? "";
 }
