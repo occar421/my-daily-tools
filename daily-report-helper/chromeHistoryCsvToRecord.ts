@@ -2,7 +2,7 @@ import { parse as parseCsv } from "jsr:@std/csv";
 import { getLogger } from "jsr:@std/log";
 import type { Exclusions, ReportRecord } from "./types.ts";
 
-const LOOK_BACK_RECORDS = 10;
+const LOOK_BACK_RECORDS = 1;
 const LOOK_BACK_RANGE = [...Array(LOOK_BACK_RECORDS).keys()].map((x) => x + 1);
 const logger = getLogger();
 
