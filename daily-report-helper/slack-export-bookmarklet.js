@@ -22,7 +22,7 @@
     do {
       await wait(800);
       await createPromiseGetMessages(messagePack);
-    } while (messagePack.messagePushed === true);
+    } while (messagePack.pushed === true);
     await createPromiseClickNextButton(messagePack);
     await wait(600);
     await createPromiseCheckOutOfPageLimit(messagePack);
@@ -102,24 +102,28 @@
     const messageSenderSelector = ".c-message__sender_button";
     const timestampLabelSelector = ".c-timestamp__label";
 
-    messagePack.messagePushed = false;
+    messagePack.pushed = false;
     let messageGroups = document.querySelectorAll(messageGroupSelector);
     log(
       "createPromiseGetMessages | Promise | messageGroups.length = " +
         messageGroups.length,
     );
 
-    messageGroups.forEach((messageGroup) => {
-      messageGroup.scrollIntoView();
+    for await (const messageGroup of messageGroups) {
+      let expands;
+      do {
+        expands = messageGroup.querySelectorAll(".c-search__expand");
+        log(
+          "createPromiseGetMessages | Promise | messageGroups.forEach | expands.length = " +
+            expands.length,
+        );
 
-      let expands = messageGroup.querySelectorAll(".c-search__expand");
-      log(
-        "createPromiseGetMessages | Promise | messageGroups.forEach | expands.length = " +
-          expands.length,
-      );
-      expands.forEach((expand) => {
-        expand.click();
-      });
+        expands.forEach((expand) => {
+          expand.click();
+        });
+
+        await wait(100);
+      } while (expands.length > 0);
 
       const datetime = timestampToTime(
         messageGroup.querySelector(messageTimestampSelector).getAttribute(
@@ -150,27 +154,28 @@
       /* 2020/12/19 20:00:20 <tab> qiita_twitter_bot <tab> twitter <tab> slack message here ...  */
       const timeAndMessage = datetime + "\t" + channelName + "\t" +
         messageSender + "\t" + trimmedMessage;
-      log(
-        "createPromiseGetMessages | Promise | messageGroups.forEach | " +
-          [datetime, channelName, messageSender, timestampLabel, message]
-            .join(", "),
-      );
+
+      if (messagePack.set.has(timeAndMessage)) {
+        continue;
+      }
+
       log(
         "createPromiseGetMessages | Promise | messageGroups.forEach | " +
           timeAndMessage,
       );
-      if (messagePack.messageSet.has(timeAndMessage)) {
-        log(
-          "createPromiseGetMessages | Promise | messagePack.messageSet.has(timeAndMessage) === true | " +
-            timeAndMessage,
-        );
-        return;
-      }
-      messagePack.messagePushed = true;
-      messagePack.messageSet.add(timeAndMessage);
 
-      return messagePack;
-    });
+      messagePack.set.add(timeAndMessage);
+      messagePack.pushed = true;
+      messagePack.values.push([
+        datetime,
+        channelName,
+        messageSender,
+        timestampLabel,
+        message,
+      ]);
+
+      messageGroup.scrollIntoView();
+    }
   };
 
   /**
@@ -271,11 +276,9 @@
    */
   const download = (messagePack) => {
     log(">>> download");
-    const newVar = [...messagePack.messageSet.values()];
-    newVar.sort();
-    const massageAll = newVar.join("\n");
+    const massageAll = messagePack.values.map((v) => v.join("\t")).join("\n");
     log(
-      "download | messagePack.messages.length " + newVar.length,
+      "download | messagePack.messages.length " + messagePack.values.length,
     );
     log("download | massageAll.length " + massageAll.length);
 
@@ -294,8 +297,9 @@
   const exportMessage = async () => {
     log(">>> exportMessage");
     const messagePack = {
-      messageSet: new Set(),
-      messagePushed: false,
+      values: [],
+      set: new Set(),
+      pushed: false,
       hasNextPage: true, /* To handle a first loop */
     };
 
