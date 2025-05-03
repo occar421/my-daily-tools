@@ -102,66 +102,74 @@
     const messageSenderSelector = ".c-message__sender_button";
     const timestampLabelSelector = ".c-timestamp__label";
 
-    return new Promise((resolve) => {
-      messagePack.messagePushed = false;
-      let messageGroups = document.querySelectorAll(messageGroupSelector);
-      log(
-        "createPromiseGetMessages | Promise | messageGroups.length = " +
-          messageGroups.length,
-      );
+    messagePack.messagePushed = false;
+    let messageGroups = document.querySelectorAll(messageGroupSelector);
+    log(
+      "createPromiseGetMessages | Promise | messageGroups.length = " +
+        messageGroups.length,
+    );
 
-      messageGroups.forEach((messageGroup) => {
-        const datetime = timestampToTime(
-          messageGroup.querySelector(messageTimestampSelector).getAttribute(
-            messageTimestampAttributeKey,
-          ).split(".")[0],
-        );
-        /* qiita_twitter_bot */
-        const channelName =
-          messageGroup.querySelector(channelNameSelector).textContent;
-        /* twitter */
-        const messageSender =
-          messageGroup.querySelector(messageSenderSelector).textContent;
-        /* 8:00 PM */
-        const timestampLabel =
-          messageGroup.querySelector(timestampLabelSelector).textContent;
-        /* twitterAPP 8:00 PM slack message here ...  */
-        const message =
-          messageGroup.querySelector(messageContentSelector).textContent;
-        const removeMessageSender = new RegExp(
-          "^" + escapeRegExp(messageSender),
-        );
-        const removeTimestampLabel = new RegExp("^.*?" + timestampLabel);
-        /* APP 8:00 PM slack message here ...  */
-        const trimmedMessage = message.replace(removeMessageSender, "").replace(
-          removeTimestampLabel,
-          "",
-        );
-        /* 2020/12/19 20:00:20 <tab> qiita_twitter_bot <tab> twitter <tab> slack message here ...  */
-        const timeAndMessage = datetime + "\t" + channelName + "\t" +
-          messageSender + "\t" + trimmedMessage;
+    messageGroups.forEach((messageGroup) => {
+      messageGroup.scrollIntoView();
+
+      let expands = messageGroup.querySelectorAll(".c-search__expand");
+      log(
+        "createPromiseGetMessages | Promise | messageGroups.forEach | expands.length = " +
+          expands.length,
+      );
+      expands.forEach((expand) => {
+        expand.click();
+      });
+
+      const datetime = timestampToTime(
+        messageGroup.querySelector(messageTimestampSelector).getAttribute(
+          messageTimestampAttributeKey,
+        ).split(".")[0],
+      );
+      /* qiita_twitter_bot */
+      const channelName =
+        messageGroup.querySelector(channelNameSelector).textContent;
+      /* twitter */
+      const messageSender =
+        messageGroup.querySelector(messageSenderSelector).textContent;
+      /* 8:00 PM */
+      const timestampLabel =
+        messageGroup.querySelector(timestampLabelSelector).textContent;
+      /* twitterAPP 8:00 PM slack message here ...  */
+      const message =
+        messageGroup.querySelector(messageContentSelector).textContent;
+      const removeMessageSender = new RegExp(
+        "^" + escapeRegExp(messageSender),
+      );
+      const removeTimestampLabel = new RegExp("^.*?" + timestampLabel);
+      /* APP 8:00 PM slack message here ...  */
+      const trimmedMessage = message.replace(removeMessageSender, "").replace(
+        removeTimestampLabel,
+        "",
+      );
+      /* 2020/12/19 20:00:20 <tab> qiita_twitter_bot <tab> twitter <tab> slack message here ...  */
+      const timeAndMessage = datetime + "\t" + channelName + "\t" +
+        messageSender + "\t" + trimmedMessage;
+      log(
+        "createPromiseGetMessages | Promise | messageGroups.forEach | " +
+          [datetime, channelName, messageSender, timestampLabel, message]
+            .join(", "),
+      );
+      log(
+        "createPromiseGetMessages | Promise | messageGroups.forEach | " +
+          timeAndMessage,
+      );
+      if (messagePack.messageSet.has(timeAndMessage)) {
         log(
-          "createPromiseGetMessages | Promise | messageGroups.forEach | " +
-            [datetime, channelName, messageSender, timestampLabel, message]
-              .join(", "),
-        );
-        log(
-          "createPromiseGetMessages | Promise | messageGroups.forEach | " +
+          "createPromiseGetMessages | Promise | messagePack.messageSet.has(timeAndMessage) === true | " +
             timeAndMessage,
         );
-        if (messagePack.messageSet.has(timeAndMessage)) {
-          log(
-            "createPromiseGetMessages | Promise | messagePack.messageSet.has(timeAndMessage) === true | " +
-              timeAndMessage,
-          );
-          return;
-        }
-        messagePack.messages.push(timeAndMessage);
-        messagePack.messagePushed = true;
-        messagePack.messageSet.add(timeAndMessage);
-        messageGroup.scrollIntoView();
-      });
-      resolve(messagePack);
+        return;
+      }
+      messagePack.messagePushed = true;
+      messagePack.messageSet.add(timeAndMessage);
+
+      return messagePack;
     });
   };
 
@@ -263,9 +271,11 @@
    */
   const download = (messagePack) => {
     log(">>> download");
-    const massageAll = messagePack.messages.join("\n");
+    const newVar = [...messagePack.messageSet.values()];
+    newVar.sort();
+    const massageAll = newVar.join("\n");
     log(
-      "download | messagePack.messages.length " + messagePack.messages.length,
+      "download | messagePack.messages.length " + newVar.length,
     );
     log("download | massageAll.length " + massageAll.length);
 
@@ -284,7 +294,6 @@
   const exportMessage = async () => {
     log(">>> exportMessage");
     const messagePack = {
-      messages: [],
       messageSet: new Set(),
       messagePushed: false,
       hasNextPage: true, /* To handle a first loop */
