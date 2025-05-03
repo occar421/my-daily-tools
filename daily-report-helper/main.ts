@@ -5,6 +5,7 @@ import type { Config, Exclusions, ReportRecord } from "./types.ts";
 import { loadConfig, parseExclusions, splitRecordsByDay } from "./utils.ts";
 import { Decrypter } from "age-encryption";
 import { createDefaultServices } from "./services.ts";
+import { slackMessageCsvToRecord } from "./slackMessageCsvToRecord.ts";
 
 // Configure logging
 setup({
@@ -39,17 +40,23 @@ for await (
     const path = join(baseDir, entry.name);
     const parsedPath = parsePath(path);
 
-    switch (parsedPath.ext) {
-      case ".csv":
-        records.push(
-          ...chromeHistoryCsvToRecord(
-            await Deno.readTextFile(path),
-            exclusions,
-          ),
-        );
-        break;
-      default:
-        continue;
+    if (parsedPath.name.startsWith("history")) {
+      const text = await services.fileSystem.readTextFile(path);
+
+      records.push(
+        ...chromeHistoryCsvToRecord(
+          text,
+          exclusions,
+        ),
+      );
+    } else if (parsedPath.name.startsWith("slack_messages")) {
+      const text = await services.fileSystem.readTextFile(path);
+
+      records.push(
+        ...slackMessageCsvToRecord(
+          text,
+        ),
+      );
     }
 
     logger.info(`Read file: ${parsedPath.base}`);
