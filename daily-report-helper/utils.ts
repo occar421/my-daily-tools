@@ -1,7 +1,6 @@
 import { Config, Exclusions, exclusionsSchema } from "./types.ts";
 import JSON5 from "json5";
 import { parseArgs } from "jsr:@std/cli/parse-args";
-import { Services } from "./services.ts";
 import { getLogger } from "jsr:@std/log";
 
 // Constant for the hour offset used for date calculations

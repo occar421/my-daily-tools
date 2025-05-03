@@ -22,9 +22,11 @@ setup({
 });
 
 const logger = getLogger();
-const services = createDefaultServices();
 
 const config = loadConfig();
+
+const services = createDefaultServices({crypto: { passphrase: config.envVars.passphrase }});
+
 const exclusions = await getExclusions(config);
 const baseDir = join(import.meta.dirname ?? ".", "data");
 
