@@ -125,7 +125,7 @@ for (const record of filteredRecords) {
       }
     }
 
-    // Skip if the Notion title matches any of the exclusion patterns
+    // Skip if the title matches any of the exclusion patterns
     if (
       exclusions.titleContains?.some((pattern) =>
         normalize(record.title).includes(normalize(pattern))
