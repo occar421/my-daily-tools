@@ -95,6 +95,7 @@
   const createPromiseGetMessages = async (messagePack) => {
     log(">>> createPromiseGetMessages");
     const messageGroupSelector = ".c-message_group";
+    const messageExpandSelector = ".c-search__expand";
     const messageContentSelector = ".c-search_message__content";
     const messageTimestampSelector = ".c-timestamp";
     const messageTimestampAttributeKey = "data-ts";
@@ -111,8 +112,8 @@
 
     for await (const messageGroup of messageGroups) {
       let expands;
-      do {
-        expands = messageGroup.querySelectorAll(".c-search__expand");
+      for (let i = 0; i < 20; i++) {
+        expands = messageGroup.querySelectorAll(messageExpandSelector);
         log(
           "createPromiseGetMessages | Promise | messageGroups.forEach | expands.length = " +
             expands.length,
@@ -122,8 +123,17 @@
           expand.click();
         });
 
+        if (expands.length === 0) {
+          break;
+        }
+
         await wait(100);
-      } while (expands.length > 0);
+      }
+
+      if (expands.length !== 0) {
+        messagePack.pushed = true; /* retry in case of dom recreation */
+        return;
+      }
 
       const datetime = timestampToTime(
         messageGroup.querySelector(messageTimestampSelector).getAttribute(
@@ -151,9 +161,16 @@
         removeTimestampLabel,
         "",
       );
-      /* 2020/12/19 20:00:20 <tab> qiita_twitter_bot <tab> twitter <tab> slack message here ...  */
-      const timeAndMessage = datetime + "\t" + channelName + "\t" +
-        messageSender + "\t" + trimmedMessage;
+
+      const row = [
+        datetime,
+        channelName,
+        messageSender,
+        trimmedMessage,
+      ];
+
+      /* 2020/12/19 20:00:20 <> qiita_twitter_bot <> twitter <> slack message here ...  */
+      const timeAndMessage = row.join(",");
 
       if (messagePack.set.has(timeAndMessage)) {
         continue;
@@ -166,13 +183,7 @@
 
       messagePack.set.add(timeAndMessage);
       messagePack.pushed = true;
-      messagePack.values.push([
-        datetime,
-        channelName,
-        messageSender,
-        timestampLabel,
-        message,
-      ]);
+      messagePack.values.push(row);
 
       messageGroup.scrollIntoView();
     }
