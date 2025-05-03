@@ -80,8 +80,31 @@ const filteredRecords = filterRecordsByEpochRange(
 // レコードを日付ごとに分割
 const recordsByDay = splitRecordsByDay(filteredRecords);
 
+function formatRecordsToMarkdown(date: string, records: ReportRecord[]): string {
+  const content = [`# Daily Report - ${date}\n`];
+
+  for (const record of records) {
+    const time = new Date(record.epoch).toLocaleTimeString('ja-JP');
+    content.push(`## ${time} - ${record.title}`);
+    if (record.meta) {
+      content.push(`\n${record.meta}\n`);
+    }
+    content.push('');
+  }
+
+  return content.join('\n');
+}
+
+async function writeMarkdownFile(date: string, content: string): Promise<void> {
+  const outputDir = join(import.meta.dirname ?? ".", "out");
+  const filePath = join(outputDir, `${date}.md`);
+  await Deno.writeTextFile(filePath, content);
+}
+
 logger.info(`レコードを${recordsByDay.size}日分に分割しました`);
 for (const [date, records] of recordsByDay.entries()) {
+  const content = formatRecordsToMarkdown(date, records);
+  await writeMarkdownFile(date, content);
   logger.info(`${date}: ${records.length} レコード`);
 }
 
