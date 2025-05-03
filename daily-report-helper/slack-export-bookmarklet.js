@@ -99,8 +99,6 @@
       ":where(.c-search__expand, .c-rich_text_expand_button)";
     const messageContentSelector =
       ".c-search_message__content > .c-message__message_blocks";
-    const messageAttachmentSelector =
-      ".c-search_message__content > :where(.c-message_attachment, .c-message_attachment_v2)";
     const messageTimestampSelector = ".c-timestamp";
     const messageTimestampAttributeKey = "data-ts";
     const channelNameSelector = ".c-message_group__header";
@@ -156,18 +154,12 @@
       /* twitterAPP 8:00 PM slack message here ...  */
       const content = messageGroup.querySelector(messageContentSelector)
         ?.textContent.replace(/ （編集済み） /g, "") ?? "";
-      const attachments =
-        [...messageGroup.querySelectorAll(messageAttachmentSelector)].map((
-          m,
-        ) => `<aside>${m.textContent}</aside>`).join("\n") ??
-          "";
-      const message = `${content}\n${attachments}`;
 
       const row = [
         datetime,
         channelName,
         sender,
-        message,
+        content,
       ];
 
       /* 2020/12/19 20:00:20 <> qiita_twitter_bot <> twitter <> slack message here ...  */
@@ -288,7 +280,7 @@
    */
   const download = (messagePack) => {
     log(">>> download");
-    const massageAll = "datetime,channelName,sender,trimmedMessage,\n" +
+    const massageAll = "datetime,channelName,sender,trimmedMessage\n" +
       messagePack.values.map((row) =>
         row.map((field) => `"${field.replace(/"/g, '""')}"`).join(",")
       ).join("\n");
