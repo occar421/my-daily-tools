@@ -265,7 +265,7 @@
    */
   const download = (messagePack) => {
     log(">>> download");
-    const massageAll = "datetime,channelName,sender,trimmedMessage\n" +
+    const massageAll = "datetime,channelName,sender,message\n" +
       messagePack.values.map((row) =>
         row.map((field) => `"${field.replace(/"/g, '""')}"`).join(",")
       ).join("\n");

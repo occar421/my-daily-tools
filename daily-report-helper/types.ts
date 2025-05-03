@@ -4,7 +4,7 @@ export type ReportRecord = {
   epoch: number;
   title: string;
   meta: string;
-  source: "Browser";
+  source: "Browser" | "Slack";
 };
 
 /**
