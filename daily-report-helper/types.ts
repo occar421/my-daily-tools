@@ -82,6 +82,14 @@ export const exclusionsSchema = z.object({
 
   // Notion titles to exclude (exact match or substring)
   titleContains: z.array(z.string()).optional(),
+
+  // Slack messages to exclude
+  slackMessages: z.array(
+    z.object({
+      channel: z.string(),
+      message: z.array(z.string()),
+    }),
+  ).optional(),
 });
 
 /**
