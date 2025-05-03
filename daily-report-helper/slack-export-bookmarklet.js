@@ -148,9 +148,6 @@
       /* twitter */
       const sender =
         messageGroup.querySelector(messageSenderSelector).textContent;
-      /* 8:00 PM */
-      const timestampLabel =
-        messageGroup.querySelector(timestampLabelSelector).textContent;
       /* twitterAPP 8:00 PM slack message here ...  */
       const content = messageGroup.querySelector(messageContentSelector)
         ?.textContent.replace(/ （編集済み） /g, "") ?? "";
@@ -259,18 +256,6 @@
     const ss = ("0" + d.getSeconds()).slice(-2);
     const week = weekday[d.getDay()];
     return `${yyyy}-${mm}-${dd} ${week} ${hh}:${mi}:${ss}`;
-  };
-
-  /**
-   * Escape regex meta characters
-   * > Escape string for use in Javascript regex - Stack Overflow
-   * > https://stackoverflow.com/questions/3446170/escape-string-for-use-in-javascript-regex
-   * @param stringValue
-   * @returns {*}
-   */
-  const escapeRegExp = (stringValue) => {
-    /* $& means the whole matched string */
-    return stringValue.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   };
 
   /**
