@@ -287,7 +287,9 @@
    */
   const download = (messagePack) => {
     log(">>> download");
-    const massageAll = messagePack.values.map((v) => v.join("\t")).join("\n");
+    const massageAll = messagePack.values.map(row =>
+      row.map(field => `"${field.replace(/"/g, '""')}"`).join(",")
+    ).join("\n");
     log(
       "download | messagePack.messages.length " + messagePack.values.length,
     );
@@ -298,7 +300,7 @@
     link.href = window.URL.createObjectURL(
       new Blob([massageAll], { type: "text/plain" }),
     );
-    link.download = "slack_messages.tsv";
+    link.download = "slack_messages.csv";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
