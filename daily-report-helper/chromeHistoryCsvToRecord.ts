@@ -116,6 +116,7 @@ export function chromeHistoryCsvToRecord(
         epoch,
         title,
         meta: row.url,
+        source: "Browser",
       });
     } catch (error) {
       logger.error(`Date conversion error: ${row.date} ${row.time}`, error);

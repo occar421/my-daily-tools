@@ -85,11 +85,11 @@ function formatRecordsToMarkdown(date: string, records: ReportRecord[]): string 
 
   for (const record of records) {
     const time = new Date(record.epoch).toLocaleTimeString('ja-JP');
-    content.push(`## ${time} - ${record.title}`);
+    content.push(`- ${time} - ${record.source}  `);
+    content.push(`  ${record.title}  `);
     if (record.meta) {
-      content.push(`\n${record.meta}\n`);
+      content.push(`  ${record.meta}  `);
     }
-    content.push('');
   }
 
   return content.join('\n');
