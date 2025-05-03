@@ -1,4 +1,4 @@
-import { Config, Exclusions, exclusionsSchema } from "./types.ts";
+import {Config, Exclusions, exclusionsSchema, ReportRecord} from "./types.ts";
 import JSON5 from "json5";
 import { parseArgs } from "jsr:@std/cli/parse-args";
 import { getLogger } from "jsr:@std/log";
@@ -163,4 +163,39 @@ export function parseExclusions(
   const parsedExclusions = exclusionsSchema.parse(parsedJson);
   logger.info("Exclusions data validation successful");
   return parsedExclusions;
+}
+
+/**
+ * レコードをHOUR_OFFSETを考慮して日付ごとのチャンクに分割する
+ * @param records フィルタリングされたレコードの配列
+ * @returns 日付ごとにグループ化されたレコードのマップ（キーは日付文字列 YYYY-MM-DD）
+ */
+export function splitRecordsByDay(
+  records: ReportRecord[],
+): Map<string, ReportRecord[]> {
+  const recordsByDay = new Map<string, ReportRecord[]>();
+
+  for (const record of records) {
+    // エポックからローカル日付を作成
+    const date = new Date(record.epoch);
+    
+    // HOUR_OFFSETを考慮して日付を調整
+    // HOUR_OFFSET時間前の記録は前日に属すると考える
+    if (date.getHours() < HOUR_OFFSET) {
+      date.setDate(date.getDate() - 1);
+    }
+    
+    // 日付文字列を YYYY-MM-DD 形式で作成
+    const dateString = date.toISOString().split('T')[0];
+    
+    // その日付のエントリーがまだ存在しない場合は作成
+    if (!recordsByDay.has(dateString)) {
+      recordsByDay.set(dateString, []);
+    }
+    
+    // レコードを対応する日付のリストに追加
+    recordsByDay.get(dateString)?.push(record);
+  }
+  
+  return recordsByDay;
 }

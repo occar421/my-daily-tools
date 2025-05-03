@@ -2,7 +2,7 @@ import { join, parse as parsePath } from "jsr:@std/path";
 import { ConsoleHandler, getLogger, setup } from "jsr:@std/log";
 import { chromeHistoryCsvToRecord } from "./chromeHistoryCsvToRecord.ts";
 import type { Config, Exclusions, ReportRecord } from "./types.ts";
-import { loadConfig, parseExclusions } from "./utils.ts";
+import {loadConfig, parseExclusions, splitRecordsByDay} from "./utils.ts";
 import { Decrypter } from "age-encryption";
 import { createDefaultServices } from "./services.ts";
 
@@ -77,7 +77,13 @@ const filteredRecords = filterRecordsByEpochRange(
   config.endEpoch,
 );
 
-logger.debug("Filtered Records: ", filteredRecords);
+// レコードを日付ごとに分割
+const recordsByDay = splitRecordsByDay(filteredRecords);
+
+logger.info(`レコードを${recordsByDay.size}日分に分割しました`);
+for (const [date, records] of recordsByDay.entries()) {
+  logger.info(`${date}: ${records.length} レコード`);
+}
 
 async function getExclusions(config: Config): Promise<Exclusions> {
   const decrypter = new Decrypter();
