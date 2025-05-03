@@ -1,9 +1,6 @@
 import { parse as parseCsv } from "jsr:@std/csv";
 import { getLogger } from "jsr:@std/log";
-import type { Exclusions, ReportRecord } from "./types.ts";
-
-const LOOK_BACK_RECORDS = 1;
-const LOOK_BACK_RANGE = [...Array(LOOK_BACK_RECORDS).keys()].map((x) => x + 1);
+import { BrowserReportRecord, Exclusions } from "./types.ts";
 
 /**
  * Function to create records from CSV text
@@ -11,13 +8,13 @@ const LOOK_BACK_RANGE = [...Array(LOOK_BACK_RECORDS).keys()].map((x) => x + 1);
  * @param exclusions Configuration object containing patterns and rules for excluding records
  * @returns Array of extracted Record type objects
  */
-export function chromeHistoryCsvToRecord(
+export function browserHistoryCsvToRecord(
   text: string,
   exclusions: Exclusions,
-): ReportRecord[] {
+): BrowserReportRecord[] {
   const logger = getLogger();
 
-  const records: ReportRecord[] = [];
+  const records: BrowserReportRecord[] = [];
 
   const csv: Record<
     "date" | "time" | "title" | "url" | "transition",
@@ -69,12 +66,6 @@ export function chromeHistoryCsvToRecord(
       ) {
         continue;
       }
-      // Skip if we've seen this Notion page recently
-      if (
-        LOOK_BACK_RANGE.some((x) => records.at(-x)?.meta.includes(notionId))
-      ) {
-        continue;
-      }
     }
 
     // Skip if the Notion title matches any of the exclusion patterns
@@ -105,12 +96,7 @@ export function chromeHistoryCsvToRecord(
       const epoch = dateObj.getTime();
 
       // Create Record object and add it to the array
-      records.push({
-        epoch,
-        title,
-        meta: row.url,
-        source: "Browser",
-      });
+      records.push(new BrowserReportRecord(epoch, title, row.url));
     } catch (error) {
       logger.error(`Date conversion error: ${row.date} ${row.time}`, error);
     }

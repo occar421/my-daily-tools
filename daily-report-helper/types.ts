@@ -1,11 +1,55 @@
 import { z } from "zod";
 
-export type ReportRecord = {
+abstract class ReportRecordBase {
   epoch: number;
+
+  protected constructor(epoch: number) {
+    this.epoch = epoch;
+  }
+
+  abstract dump(): string;
+  abstract hash(): string;
+}
+
+export class BrowserReportRecord extends ReportRecordBase {
   title: string;
-  meta: string;
-  source: "Browser" | "Slack";
-};
+  url: string;
+
+  constructor(epoch: number, title: string, url: string) {
+    super(epoch);
+    this.title = title;
+    this.url = url;
+  }
+
+  dump(): string {
+    return `${this.epoch} ${this.title} (${this.url})`;
+  }
+
+  hash(): string {
+    return this.dump();
+  }
+}
+
+export class SlackReportRecord extends ReportRecordBase {
+  channel: string;
+  message: string;
+
+  constructor(epoch: number, channel: string, message: string) {
+    super(epoch);
+    this.channel = channel;
+    this.message = message;
+  }
+
+  dump(): string {
+    return `${this.epoch} #${this.channel} ${this.message}`;
+  }
+
+  hash(): string {
+    return this.dump();
+  }
+}
+
+export type ReportRecord = BrowserReportRecord | SlackReportRecord;
 
 /**
  * Application configuration information

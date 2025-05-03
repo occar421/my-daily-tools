@@ -190,9 +190,7 @@ export function splitRecordsByDay(
       day: "2-digit",
     }).replaceAll("/", "-");
 
-    logger.debug(
-      `Processing record: ${date} ${dateString} ${record.epoch} ${record.title} (${record.meta})`,
-    );
+    logger.debug(`Processing record: ${date} ${dateString} ${record.dump()}`);
 
     // その日付のエントリーがまだ存在しない場合は作成
     if (!recordsByDay.has(dateString)) {

@@ -1,5 +1,5 @@
 import { assertEquals } from "jsr:@std/assert";
-import { chromeHistoryCsvToRecord } from "./chromeHistoryCsvToRecord.ts";
+import { browserHistoryCsvToRecord } from "./browserHistoryCsvToRecord.ts";
 import type { Exclusions } from "./types.ts";
 
 // Sample CSV data for testing
@@ -33,11 +33,11 @@ Deno.test("chromeHistoryCsvToRecord - basic parsing", () => {
   ]);
 
   const exclusions: Exclusions = {};
-  const result = chromeHistoryCsvToRecord(csvData, exclusions);
+  const result = browserHistoryCsvToRecord(csvData, exclusions);
 
   assertEquals(result.length, 1);
   assertEquals(result[0].title, "Test Page");
-  assertEquals(result[0].meta, "https://example.com");
+  assertEquals(result[0].url, "https://example.com");
   // Check that epoch is a number (exact value depends on timezone)
   assertEquals(typeof result[0].epoch, "number");
 });
@@ -61,7 +61,7 @@ Deno.test("chromeHistoryCsvToRecord - skip reload transitions", () => {
   ]);
 
   const exclusions: Exclusions = {};
-  const result = chromeHistoryCsvToRecord(csvData, exclusions);
+  const result = browserHistoryCsvToRecord(csvData, exclusions);
 
   assertEquals(result.length, 1);
   assertEquals(result[0].title, "Another Page");
@@ -81,7 +81,7 @@ Deno.test("chromeHistoryCsvToRecord - skip empty titles", () => {
   ]);
 
   const exclusions: Exclusions = {};
-  const result = chromeHistoryCsvToRecord(csvData, exclusions);
+  const result = browserHistoryCsvToRecord(csvData, exclusions);
 
   assertEquals(result.length, 1);
   assertEquals(result[0].title, "Valid Title");
@@ -99,7 +99,7 @@ Deno.test("chromeHistoryCsvToRecord - remove notification count from Notion titl
   ]);
 
   const exclusions: Exclusions = {};
-  const result = chromeHistoryCsvToRecord(csvData, exclusions);
+  const result = browserHistoryCsvToRecord(csvData, exclusions);
 
   assertEquals(result.length, 1);
   assertEquals(result[0].title, "Notion Page");
@@ -131,7 +131,7 @@ Deno.test("chromeHistoryCsvToRecord - skip duplicate titles", () => {
   ]);
 
   const exclusions: Exclusions = {};
-  const result = chromeHistoryCsvToRecord(csvData, exclusions);
+  const result = browserHistoryCsvToRecord(csvData, exclusions);
 
   assertEquals(result.length, 2);
   assertEquals(result[0].title, "Test Page");
@@ -159,7 +159,7 @@ Deno.test("chromeHistoryCsvToRecord - exclude by URL prefix", () => {
   const exclusions: Exclusions = {
     urlPrefixes: ["https://excluded.com"],
   };
-  const result = chromeHistoryCsvToRecord(csvData, exclusions);
+  const result = browserHistoryCsvToRecord(csvData, exclusions);
 
   assertEquals(result.length, 1);
   assertEquals(result[0].title, "Included Page");
@@ -186,7 +186,7 @@ Deno.test("chromeHistoryCsvToRecord - exclude by URL contains", () => {
   const exclusions: Exclusions = {
     urlContains: ["/excluded/"],
   };
-  const result = chromeHistoryCsvToRecord(csvData, exclusions);
+  const result = browserHistoryCsvToRecord(csvData, exclusions);
 
   assertEquals(result.length, 1);
   assertEquals(result[0].title, "Included Page");
@@ -213,7 +213,7 @@ Deno.test("chromeHistoryCsvToRecord - exclude by Notion ID", () => {
   const exclusions: Exclusions = {
     notionIds: ["1234567890abcdef1234567890abcdef"],
   };
-  const result = chromeHistoryCsvToRecord(csvData, exclusions);
+  const result = browserHistoryCsvToRecord(csvData, exclusions);
 
   assertEquals(result.length, 1);
   assertEquals(result[0].title, "Included Notion Page");
@@ -240,7 +240,7 @@ Deno.test("chromeHistoryCsvToRecord - exclude by title contains", () => {
   const exclusions: Exclusions = {
     titleContains: ["Private"],
   };
-  const result = chromeHistoryCsvToRecord(csvData, exclusions);
+  const result = browserHistoryCsvToRecord(csvData, exclusions);
 
   assertEquals(result.length, 1);
   assertEquals(result[0].title, "Public Page");
@@ -265,7 +265,7 @@ Deno.test("chromeHistoryCsvToRecord - handle invalid date format", () => {
   ]);
 
   const exclusions: Exclusions = {};
-  const result = chromeHistoryCsvToRecord(csvData, exclusions);
+  const result = browserHistoryCsvToRecord(csvData, exclusions);
 
   assertEquals(result.length, 1);
   assertEquals(result[0].title, "Valid Date");
@@ -309,7 +309,7 @@ Deno.test("chromeHistoryCsvToRecord - multiple exclusion rules", () => {
     notionIds: ["1234567890abcdef1234567890abcdef"],
     titleContains: ["Private"],
   };
-  const result = chromeHistoryCsvToRecord(csvData, exclusions);
+  const result = browserHistoryCsvToRecord(csvData, exclusions);
 
   assertEquals(result.length, 1);
   assertEquals(result[0].title, "Public Page");

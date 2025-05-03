@@ -1,7 +1,13 @@
 import { join, parse as parsePath } from "jsr:@std/path";
 import { ConsoleHandler, getLogger, setup } from "jsr:@std/log";
-import { chromeHistoryCsvToRecord } from "./chromeHistoryCsvToRecord.ts";
-import type { Config, Exclusions, ReportRecord } from "./types.ts";
+import { browserHistoryCsvToRecord } from "./browserHistoryCsvToRecord.ts";
+import {
+  BrowserReportRecord,
+  Config,
+  Exclusions,
+  ReportRecord,
+  SlackReportRecord,
+} from "./types.ts";
 import { loadConfig, parseExclusions, splitRecordsByDay } from "./utils.ts";
 import { Decrypter } from "age-encryption";
 import { createDefaultServices } from "./services.ts";
@@ -44,7 +50,7 @@ for await (
       const text = await services.fileSystem.readTextFile(path);
 
       records.push(
-        ...chromeHistoryCsvToRecord(
+        ...browserHistoryCsvToRecord(
           text,
           exclusions,
         ),
@@ -67,7 +73,7 @@ for await (
 const uniqueMap: Map<string, ReportRecord> = new Map();
 for (const record of records) {
   // Create a unique key for each record
-  const key = `${record.epoch}-${record.title}-${record.meta}`;
+  const key = record.hash();
   // Only add to map if this key doesn't exist yet
   if (!uniqueMap.has(key)) {
     uniqueMap.set(key, record);
@@ -95,10 +101,14 @@ function formatRecordsToMarkdown(
 
   for (const record of records) {
     const time = new Date(record.epoch).toLocaleTimeString("ja-JP");
-    content.push(`- ${time} - ${record.source}  `);
-    content.push(`  ${record.title}  `);
-    if (record.meta) {
-      content.push(`  ${record.meta}  `);
+
+    if (record instanceof BrowserReportRecord) {
+      content.push(`- ${time} - Browser  `);
+      content.push(`  ${record.title}  `);
+      content.push(`  ${record.url}`);
+    } else if (record instanceof SlackReportRecord) {
+      content.push(`- ${time} - Slack #${record.channel}  `);
+      content.push(...record.message.split("\n").map((line) => `  ${line}`));
     }
   }
 
