@@ -154,18 +154,20 @@
       const timestampLabel =
         messageGroup.querySelector(timestampLabelSelector).textContent;
       /* twitterAPP 8:00 PM slack message here ...  */
-      const message =
-        messageGroup.querySelector(messageContentSelector).textContent +
-            [...messageGroup.querySelectorAll(messageAttachmentSelector)].map((
-              m,
-            ) => `<aside>${m.textContent}</aside>`).join("\n") ?? "";
-      const trimmedMessage = message.replace(/ （編集済み） /g, "");
+      const content = messageGroup.querySelector(messageContentSelector)
+        ?.textContent.replace(/ （編集済み） /g, "") ?? "";
+      const attachments =
+        [...messageGroup.querySelectorAll(messageAttachmentSelector)].map((
+          m,
+        ) => `<aside>${m.textContent}</aside>`).join("\n") ??
+          "";
+      const message = `${content}\n${attachments}`;
 
       const row = [
         datetime,
         channelName,
         sender,
-        trimmedMessage,
+        message,
       ];
 
       /* 2020/12/19 20:00:20 <> qiita_twitter_bot <> twitter <> slack message here ...  */
@@ -286,9 +288,10 @@
    */
   const download = (messagePack) => {
     log(">>> download");
-    const massageAll = messagePack.values.map((row) =>
-      row.map((field) => `"${field.replace(/"/g, '""')}"`).join(",")
-    ).join("\n");
+    const massageAll = "datetime,channelName,sender,trimmedMessage,\n" +
+      messagePack.values.map((row) =>
+        row.map((field) => `"${field.replace(/"/g, '""')}"`).join(",")
+      ).join("\n");
     log(
       "download | messagePack.messages.length " + messagePack.values.length,
     );
