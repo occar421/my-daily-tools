@@ -95,8 +95,12 @@
   const createPromiseGetMessages = async (messagePack) => {
     log(">>> createPromiseGetMessages");
     const messageGroupSelector = ".c-message_group";
-    const messageExpandSelector = ".c-search__expand";
-    const messageContentSelector = ".c-search_message__content";
+    const messageExpandSelector =
+      ":where(.c-search__expand, .c-rich_text_expand_button)";
+    const messageContentSelector =
+      ".c-search_message__content > .c-message__message_blocks";
+    const messageAttachmentSelector =
+      ".c-search_message__content > :where(.c-message_attachment, .c-message_attachment_v2)";
     const messageTimestampSelector = ".c-timestamp";
     const messageTimestampAttributeKey = "data-ts";
     const channelNameSelector = ".c-message_group__header";
@@ -144,28 +148,23 @@
       const channelName =
         messageGroup.querySelector(channelNameSelector).textContent;
       /* twitter */
-      const messageSender =
+      const sender =
         messageGroup.querySelector(messageSenderSelector).textContent;
       /* 8:00 PM */
       const timestampLabel =
         messageGroup.querySelector(timestampLabelSelector).textContent;
       /* twitterAPP 8:00 PM slack message here ...  */
       const message =
-        messageGroup.querySelector(messageContentSelector).textContent;
-      const removeMessageSender = new RegExp(
-        "^" + escapeRegExp(messageSender),
-      );
-      const removeTimestampLabel = new RegExp("^.*?" + timestampLabel);
-      /* APP 8:00 PM slack message here ...  */
-      const trimmedMessage = message.replace(removeMessageSender, "").replace(
-        removeTimestampLabel,
-        "",
-      );
+        messageGroup.querySelector(messageContentSelector).textContent +
+            [...messageGroup.querySelectorAll(messageAttachmentSelector)].map((
+              m,
+            ) => `<aside>${m.textContent}</aside>`).join("\n") ?? "";
+      const trimmedMessage = message.replace(/ （編集済み） /g, "");
 
       const row = [
         datetime,
         channelName,
-        messageSender,
+        sender,
         trimmedMessage,
       ];
 
@@ -287,8 +286,8 @@
    */
   const download = (messagePack) => {
     log(">>> download");
-    const massageAll = messagePack.values.map(row =>
-      row.map(field => `"${field.replace(/"/g, '""')}"`).join(",")
+    const massageAll = messagePack.values.map((row) =>
+      row.map((field) => `"${field.replace(/"/g, '""')}"`).join(",")
     ).join("\n");
     log(
       "download | messagePack.messages.length " + messagePack.values.length,
