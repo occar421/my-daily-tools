@@ -4,7 +4,6 @@ import type { Exclusions, ReportRecord } from "./types.ts";
 
 const LOOK_BACK_RECORDS = 1;
 const LOOK_BACK_RANGE = [...Array(LOOK_BACK_RECORDS).keys()].map((x) => x + 1);
-const logger = getLogger();
 
 /**
  * Function to create records from CSV text
@@ -16,6 +15,8 @@ export function chromeHistoryCsvToRecord(
   text: string,
   exclusions: Exclusions,
 ): ReportRecord[] {
+  const logger = getLogger();
+
   const records: ReportRecord[] = [];
 
   const csv: Record<

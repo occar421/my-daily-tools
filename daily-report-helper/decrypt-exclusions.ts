@@ -3,12 +3,12 @@ import { createDefaultServices, Services } from "./services.ts";
 import { getLogger } from "jsr:@std/log";
 import { Config } from "./types.ts";
 
-const logger = getLogger();
-
 /**
  * Decrypt configuration file
  */
 export async function decryptExclusions(config: Config, services: Services) {
+  const logger = getLogger();
+
   const cypherBuffer = await services.fileSystem.readFile(
     config.cryptedFilePath,
   );

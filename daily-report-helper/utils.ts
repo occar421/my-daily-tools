@@ -6,8 +6,6 @@ import { getLogger } from "jsr:@std/log";
 // Constant for the hour offset used for date calculations
 const HOUR_OFFSET = 7;
 
-const logger = getLogger();
-
 /**
  * Validate and create a Date object from a date string
  * @param dateStr Date string in YYYY-MM-DD format
@@ -68,6 +66,8 @@ function getEndEpochFromDateString(dateStr?: string): number | undefined {
 export function parseDateRangeFromArgs(
   cmdArgs: string[],
 ): { startEpoch: number; endEpoch?: number } {
+  const logger = getLogger();
+
   // Parse command line arguments for start and end dates
   const args = parseArgs(cmdArgs, {
     string: ["startDate", "endDate"],
@@ -159,6 +159,8 @@ function loadPassphraseFromEnv(): string {
 export function parseExclusions(
   rawText: string,
 ): Exclusions {
+  const logger = getLogger();
+
   const parsedJson = JSON5.parse(rawText);
   const parsedExclusions = exclusionsSchema.parse(parsedJson);
   logger.info("Exclusions data validation successful");
@@ -173,6 +175,8 @@ export function parseExclusions(
 export function splitRecordsByDay(
   records: ReportRecord[],
 ): Map<string, ReportRecord[]> {
+  const logger = getLogger();
+
   const recordsByDay = new Map<string, ReportRecord[]>();
 
   for (const record of records) {

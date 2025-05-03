@@ -9,9 +9,7 @@ import { createDefaultServices } from "./services.ts";
 // Configure logging
 setup({
   handlers: {
-    default: new ConsoleHandler("DEBUG", {
-      formatter: ({ levelName, msg }) => `${levelName} - ${msg}`,
-    }),
+    default: new ConsoleHandler("DEBUG"),
   },
   loggers: {
     default: {

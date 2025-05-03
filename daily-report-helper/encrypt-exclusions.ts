@@ -3,8 +3,6 @@ import { createDefaultServices, Services } from "./services.ts";
 import { getLogger } from "jsr:@std/log";
 import { Config } from "./types.ts";
 
-const logger = getLogger();
-
 /**
  * Encrypt configuration file
  */
@@ -12,6 +10,8 @@ export async function encryptExclusions(
   config: Config,
   services: Services,
 ) {
+  const logger = getLogger();
+
   const rawText = await services.fileSystem.readTextFile(config.rawFilePath);
   parseExclusions(rawText);
 
