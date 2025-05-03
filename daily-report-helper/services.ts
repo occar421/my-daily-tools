@@ -9,6 +9,7 @@ export interface FileSystem {
   readFile(path: string): Promise<Uint8Array>;
   writeFile(path: string, data: Uint8Array): Promise<void>;
   exists(path: string): Promise<boolean>;
+  writeTextFile(path: string, text: string): Promise<void>; // 追加
 }
 
 export interface CryptoSystem {
@@ -34,6 +35,11 @@ export class DenoFileSystem implements FileSystem {
 
   async exists(path: string): Promise<boolean> {
     return await exists(path);
+  }
+
+  // 追加: writeTextFile の実装
+  async writeTextFile(path: string, text: string): Promise<void> {
+    await Deno.writeTextFile(path, text);
   }
 }
 

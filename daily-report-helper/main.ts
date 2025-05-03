@@ -95,16 +95,11 @@ function formatRecordsToMarkdown(date: string, records: ReportRecord[]): string 
   return content.join('\n');
 }
 
-async function writeMarkdownFile(date: string, content: string): Promise<void> {
-  const outputDir = join(import.meta.dirname ?? ".", "out");
-  const filePath = join(outputDir, `${date}.md`);
-  await Deno.writeTextFile(filePath, content);
-}
-
 logger.info(`レコードを${recordsByDay.size}日分に分割しました`);
 for (const [date, records] of recordsByDay.entries()) {
   const content = formatRecordsToMarkdown(date, records);
-  await writeMarkdownFile(date, content);
+  const filePath = join(import.meta.dirname ?? ".", "out", `${date}.md`);
+  await services.fileSystem.writeTextFile(filePath, content);
   logger.info(`${date}: ${records.length} レコード`);
 }
 
