@@ -35,24 +35,16 @@ export function chromeHistoryCsvToRecord(
       continue;
     }
 
+    let title = row.title.trim();
+
     // Skip if title is empty
-    if (row.title.trim() === "") {
+    if (title === "") {
       continue;
     }
 
-    let title = row.title.trim();
     // Remove notification count from Notion titles
     if (row.url.startsWith("https://www.notion.so/")) {
       title = row.title.replace(/^\((\d+\+?)\)\s/, "");
-    }
-
-    // Skip if title is the same as a recent one
-    if (
-      LOOK_BACK_RANGE.some((x) =>
-        normalize(records.at(-x)?.title) === normalize(title)
-      )
-    ) {
-      continue;
     }
 
     // Skip based on URL prefixes from exclusions
@@ -65,7 +57,7 @@ export function chromeHistoryCsvToRecord(
       continue;
     }
 
-    // Check for Notion IDs
+    // // Check for Notion IDs
     const notionMatch = row.url.match(
       /https:\/\/www.notion.so\/.*?-?([0-9a-f]{32})/,
     );

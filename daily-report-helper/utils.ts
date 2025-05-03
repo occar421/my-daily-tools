@@ -181,10 +181,18 @@ export function splitRecordsByDay(
 
   for (const record of records) {
     // エポックからローカル日付を作成
-    const date = new Date(record.epoch);
+    const date = new Date(record.epoch - HOUR_OFFSET * 60 * 60 * 1000);
 
     // 日付文字列を YYYY-MM-DD 形式で作成
-    const dateString = date.toISOString().split("T")[0];
+    const dateString = date.toLocaleDateString("ja-JP", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).replaceAll("/", "-");
+
+    logger.debug(
+      `Processing record: ${date} ${dateString} ${record.epoch} ${record.title} (${record.meta})`,
+    );
 
     // その日付のエントリーがまだ存在しない場合は作成
     if (!recordsByDay.has(dateString)) {
