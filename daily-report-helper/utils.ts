@@ -1,4 +1,4 @@
-import {Config, Exclusions, exclusionsSchema, ReportRecord} from "./types.ts";
+import { Config, Exclusions, exclusionsSchema, ReportRecord } from "./types.ts";
 import JSON5 from "json5";
 import { parseArgs } from "jsr:@std/cli/parse-args";
 import { getLogger } from "jsr:@std/log";
@@ -182,24 +182,18 @@ export function splitRecordsByDay(
   for (const record of records) {
     // エポックからローカル日付を作成
     const date = new Date(record.epoch);
-    
-    // HOUR_OFFSETを考慮して日付を調整
-    // HOUR_OFFSET時間前の記録は前日に属すると考える
-    if (date.getHours() < HOUR_OFFSET) {
-      date.setDate(date.getDate() - 1);
-    }
-    
+
     // 日付文字列を YYYY-MM-DD 形式で作成
-    const dateString = date.toISOString().split('T')[0];
-    
+    const dateString = date.toISOString().split("T")[0];
+
     // その日付のエントリーがまだ存在しない場合は作成
     if (!recordsByDay.has(dateString)) {
       recordsByDay.set(dateString, []);
     }
-    
+
     // レコードを対応する日付のリストに追加
     recordsByDay.get(dateString)?.push(record);
   }
-  
+
   return recordsByDay;
 }

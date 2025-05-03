@@ -5,8 +5,11 @@ Deno.test("exclusionsSchema - valid data with all fields", () => {
   const validData = {
     urlPrefixes: ["https://example.com", "http://test.org"],
     urlContains: ["private", "internal"],
-    notionIds: ["1234567890abcdef1234567890abcdef", "abcdef1234567890abcdef1234567890"],
-    titleContains: ["Private", "Internal"]
+    notionIds: [
+      "1234567890abcdef1234567890abcdef",
+      "abcdef1234567890abcdef1234567890",
+    ],
+    titleContains: ["Private", "Internal"],
   };
 
   const result = exclusionsSchema.parse(validData);
@@ -16,7 +19,7 @@ Deno.test("exclusionsSchema - valid data with all fields", () => {
 Deno.test("exclusionsSchema - valid data with some fields", () => {
   const validData = {
     urlPrefixes: ["https://example.com"],
-    titleContains: ["Private"]
+    titleContains: ["Private"],
   };
 
   const result = exclusionsSchema.parse(validData);
@@ -32,51 +35,51 @@ Deno.test("exclusionsSchema - valid empty object", () => {
 
 Deno.test("exclusionsSchema - invalid urlPrefixes type", () => {
   const invalidData = {
-    urlPrefixes: "https://example.com" // Should be an array
+    urlPrefixes: "https://example.com", // Should be an array
   };
 
   assertThrows(
     () => exclusionsSchema.parse(invalidData),
-    Error
+    Error,
   );
 });
 
 Deno.test("exclusionsSchema - invalid urlContains type", () => {
   const invalidData = {
-    urlContains: 123 // Should be an array of strings
+    urlContains: 123, // Should be an array of strings
   };
 
   assertThrows(
     () => exclusionsSchema.parse(invalidData),
-    Error
+    Error,
   );
 });
 
 Deno.test("exclusionsSchema - invalid notionIds type", () => {
   const invalidData = {
-    notionIds: [123, 456] // Should be an array of strings
+    notionIds: [123, 456], // Should be an array of strings
   };
 
   assertThrows(
     () => exclusionsSchema.parse(invalidData),
-    Error
+    Error,
   );
 });
 
 Deno.test("exclusionsSchema - invalid titleContains type", () => {
   const invalidData = {
-    titleContains: [true, false] // Should be an array of strings
+    titleContains: [true, false], // Should be an array of strings
   };
 
   assertThrows(
     () => exclusionsSchema.parse(invalidData),
-    Error
+    Error,
   );
 });
 
 Deno.test("exclusionsSchema - unknown field", () => {
   const invalidData = {
-    unknownField: ["test"]
+    unknownField: ["test"],
   };
 
   // Zod's default behavior is to strip unknown fields, so this should pass

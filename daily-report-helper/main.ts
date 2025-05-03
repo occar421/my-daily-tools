@@ -2,7 +2,7 @@ import { join, parse as parsePath } from "jsr:@std/path";
 import { ConsoleHandler, getLogger, setup } from "jsr:@std/log";
 import { chromeHistoryCsvToRecord } from "./chromeHistoryCsvToRecord.ts";
 import type { Config, Exclusions, ReportRecord } from "./types.ts";
-import {loadConfig, parseExclusions, splitRecordsByDay} from "./utils.ts";
+import { loadConfig, parseExclusions, splitRecordsByDay } from "./utils.ts";
 import { Decrypter } from "age-encryption";
 import { createDefaultServices } from "./services.ts";
 
@@ -23,7 +23,9 @@ const logger = getLogger();
 
 const config = loadConfig();
 
-const services = createDefaultServices({crypto: { passphrase: config.envVars.passphrase }});
+const services = createDefaultServices({
+  crypto: { passphrase: config.envVars.passphrase },
+});
 
 const exclusions = await getExclusions(config);
 const baseDir = join(import.meta.dirname ?? ".", "data");
@@ -78,11 +80,14 @@ const filteredRecords = filterRecordsByEpochRange(
 // レコードを日付ごとに分割
 const recordsByDay = splitRecordsByDay(filteredRecords);
 
-function formatRecordsToMarkdown(date: string, records: ReportRecord[]): string {
+function formatRecordsToMarkdown(
+  date: string,
+  records: ReportRecord[],
+): string {
   const content = [`# Daily Report - ${date}\n`];
 
   for (const record of records) {
-    const time = new Date(record.epoch).toLocaleTimeString('ja-JP');
+    const time = new Date(record.epoch).toLocaleTimeString("ja-JP");
     content.push(`- ${time} - ${record.source}  `);
     content.push(`  ${record.title}  `);
     if (record.meta) {
@@ -90,7 +95,7 @@ function formatRecordsToMarkdown(date: string, records: ReportRecord[]): string 
     }
   }
 
-  return content.join('\n');
+  return content.join("\n");
 }
 
 logger.info(`レコードを${recordsByDay.size}日分に分割しました`);
