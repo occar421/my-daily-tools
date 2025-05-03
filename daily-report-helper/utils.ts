@@ -1,4 +1,10 @@
-import { Config, Exclusions, exclusionsSchema, ReportRecord } from "./types.ts";
+import {
+  Config,
+  Exclusions,
+  exclusionsSchema,
+  Params,
+  ReportRecord,
+} from "./types.ts";
 import JSON5 from "json5";
 import { parseArgs } from "jsr:@std/cli/parse-args";
 import { getLogger } from "jsr:@std/log";
@@ -125,17 +131,26 @@ export function loadConfig(): Config {
   const cryptedFilePath = `${rawFilePath}.age`;
   const passphrase = loadPassphraseFromEnv();
 
-  // Get date range from command line arguments
-  const { startEpoch, endEpoch } = parseDateRangeFromArgs(
-    Deno.args,
-  );
-
   return {
     rawFilePath,
     cryptedFilePath,
     envVars: {
       passphrase,
     },
+  };
+}
+
+/**
+ * Load and validate environment settings
+ * @privateRemarks This function needs to be tested.
+ */
+export function loadParams(): Params {
+  // Get date range from command line arguments
+  const { startEpoch, endEpoch } = parseDateRangeFromArgs(
+    Deno.args,
+  );
+
+  return {
     startEpoch,
     endEpoch,
   };

@@ -8,7 +8,12 @@ import {
   ReportRecord,
   SlackReportRecord,
 } from "./types.ts";
-import { loadConfig, parseExclusions, splitRecordsByDay } from "./utils.ts";
+import {
+  loadConfig,
+  loadParams,
+  parseExclusions,
+  splitRecordsByDay,
+} from "./utils.ts";
 import { Decrypter } from "age-encryption";
 import { createDefaultServices } from "./services.ts";
 import { slackMessageCsvToRecord } from "./slackMessageCsvToRecord.ts";
@@ -29,6 +34,7 @@ setup({
 const logger = getLogger();
 
 const config = loadConfig();
+const params = loadParams();
 
 const services = createDefaultServices({
   crypto: { passphrase: config.envVars.passphrase },
@@ -85,8 +91,8 @@ uniqueRecords.sort((a, b) => a.epoch - b.epoch);
 
 const filteredRecords = filterRecordsByEpochRange(
   uniqueRecords,
-  config.startEpoch,
-  config.endEpoch,
+  params.startEpoch,
+  params.endEpoch,
 );
 
 const excludedRecords = [];
@@ -130,7 +136,9 @@ for (const record of filteredRecords) {
 
     excludedRecords.push(record);
   } else if (record instanceof SlackReportRecord) {
-    // TODO exclude for Slack messages
+    if (record.channel.startsWith("times-")) {
+      continue;
+    }
 
     excludedRecords.push(record);
   }

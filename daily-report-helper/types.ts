@@ -60,6 +60,9 @@ export interface Config {
   envVars: {
     passphrase: string;
   };
+}
+
+export interface Params {
   startEpoch: number;
   endEpoch?: number;
 }
