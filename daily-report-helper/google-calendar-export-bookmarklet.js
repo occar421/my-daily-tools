@@ -130,6 +130,7 @@
     const result = {
       startDatetime,
       endDatetime,
+      type: "schedule",
       title,
       calendarName,
       status,
@@ -182,9 +183,9 @@
     log(">>> download");
 
     const massageAll =
-      "startDatetime,endDatetime,title,calendarName,status,location\n" +
+      "startDatetime,endDatetime,type,title,calendarName,status,location\n" +
       messages.map((row) =>
-        `${row.startDatetime.toISOString()},${row.endDatetime.toISOString()},${row.title},${row.calendarName},${
+        `${row.startDatetime.toISOString()},${row.endDatetime.toISOString()},${row.type},${row.title},${row.calendarName},${
           row.status ?? "unknown"
         },${row.location !== null ? row.location : "unknown"}`
       ).join("\n");
