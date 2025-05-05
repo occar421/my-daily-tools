@@ -48,6 +48,7 @@
     const eventSet = new Set();
     const messages = [];
 
+    /* get events from popover */
     const datePopoverButtons = document.querySelectorAll(
       datePopoverButtonSelector,
     );
@@ -67,49 +68,13 @@
         eventSet.add(id);
 
         const schedule = event.querySelector(scheduleSelector);
-        const elements = schedule.textContent.split("、");
+        const result = parseScheduleText(schedule.textContent);
 
-        if (
-          elements.at(0) === "終日" || elements.at(0) === "タスク" ||
-          elements.at(0).startsWith("タスク:")
-        ) {
+        if (!result) {
           continue;
         }
 
-        if (
-          elements.at(1).startsWith("不在") ||
-          elements.at(1).startsWith("サイレント モード:")
-        ) {
-          continue;
-        }
-
-        const date = parseJapaneseDate(elements.at(-1));
-
-        const [start, end] = elements.at(0).split("～");
-        const startDatetime = addTime(date, start);
-        const endDatetime = addTime(date, end);
-
-        const titleString = elements.at(1);
-        const titleMatch = titleString.match(/^「(.*)」$/);
-        const title = titleMatch?.[1] ?? titleString;
-
-        const calendarName = elements.at(2);
-
-        const status = STATUS_MAP.get(elements.at(3));
-
-        const locationString = elements.at(4);
-        const locationMatch = locationString.match(/^場所: (.+)$/);
-        const location = locationMatch?.[1] ??
-          (locationString === "場所の指定なし" ? "" : null);
-
-        messages.push({
-          startDatetime,
-          endDatetime,
-          title,
-          calendarName,
-          status,
-          location,
-        });
+        messages.push(result);
       }
     }
 
@@ -122,6 +87,52 @@
     alert(`"週" is not supported.`);
 
     return [];
+  };
+
+  const parseScheduleText = (str) => {
+    const elements = str.split("、");
+
+    if (
+      elements.at(0) === "終日" || elements.at(0) === "タスク" ||
+      elements.at(0).startsWith("タスク:")
+    ) {
+      return;
+    }
+
+    if (
+      elements.at(1).startsWith("不在") ||
+      elements.at(1).startsWith("サイレント モード:")
+    ) {
+      return;
+    }
+
+    const date = parseJapaneseDate(elements.at(-1));
+
+    const [start, end] = elements.at(0).split("～");
+    const startDatetime = addTime(date, start);
+    const endDatetime = addTime(date, end);
+
+    const titleString = elements.at(1);
+    const titleMatch = titleString.match(/^「(.*)」$/);
+    const title = titleMatch?.[1] ?? titleString;
+
+    const calendarName = elements.at(2);
+
+    const status = STATUS_MAP.get(elements.at(3));
+
+    const locationString = elements.at(4);
+    const locationMatch = locationString.match(/^場所: (.+)$/);
+    const location = locationMatch?.[1] ??
+      (locationString === "場所の指定なし" ? "" : null);
+
+    return {
+      startDatetime,
+      endDatetime,
+      title,
+      calendarName,
+      status,
+      location,
+    };
   };
 
   /**
