@@ -50,17 +50,24 @@ export class SlackReportRecord extends ReportRecordBase {
 }
 
 export class CalendarReportRecord extends ReportRecordBase {
+  duration: number;
   title: string;
-  description: string;
+  calendarName: string;
 
-  constructor(epoch: number, title: string, description: string) {
+  constructor(
+    epoch: number,
+    duration: number,
+    title: string,
+    calendarName: string,
+  ) {
     super(epoch);
+    this.duration = duration;
     this.title = title;
-    this.description = description;
+    this.calendarName = calendarName;
   }
 
   dump(): string {
-    return `${this.epoch} ${this.title} (${this.description})`;
+    return `${this.epoch} ${this.title} ${this.duration} (${this.calendarName})`;
   }
 
   hash(): string {
@@ -113,8 +120,8 @@ export const exclusionsSchema = z.object({
     }),
   ).optional(),
 
-  // Calendar names to exclude
-  calendarNames: z.array(z.string()).optional(),
+  // Calendar names to include
+  notCalendarNames: z.array(z.string()).optional(),
 });
 
 /**
