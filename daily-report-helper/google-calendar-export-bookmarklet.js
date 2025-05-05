@@ -1,5 +1,5 @@
 (async () => {
-  const DEBUG_MODE = true;
+  const DEBUG_MODE = false;
   const log = (value) => {
     if (DEBUG_MODE === true) {
       console.log(value);
@@ -86,21 +86,21 @@
 
         const calendarName = elements.at(2);
 
-        const reply = STATUS_MAP.get(elements.at(3)) ?? "unknown";
+        const status = STATUS_MAP.get(elements.at(3));
 
         const locationString = elements.at(4);
         const locationMatch = locationString.match(/^場所: (.+)$/);
         const location = locationMatch?.[1] ??
-          (locationString === "場所の指定なし" ? "" : locationString);
+          (locationString === "場所の指定なし" ? "" : null);
 
-        messages.push([
+        messages.push({
           startDatetime,
           endDatetime,
           title,
           calendarName,
-          reply,
+          status,
           location,
-        ]);
+        });
       }
     }
 
@@ -154,15 +154,15 @@
    */
   const download = (messages) => {
     log(">>> download");
-    console.log(messages);
-    /*
-    const massageAll = "datetime,channelName,sender,message\n" +
-      messagePack.values.map((row) =>
-        row.map((field) => `"${field.replace(/"/g, '""')}"`).join(",")
+
+    const massageAll =
+      "startDatetime,endDatetime,title,calendarName,status,location\n" +
+      messages.map((row) =>
+        `${row.startDatetime.toISOString()},${row.endDatetime.toISOString()},${row.title},${row.calendarName},${
+          row.status ?? "unknown"
+        },${row.location !== null ? row.location : "unknown"}`
       ).join("\n");
-    log(
-      "download | messagePack.messages.length " + messagePack.values.length,
-    );
+    log("download | messages.length " + messages.length);
     log("download | massageAll.length " + massageAll.length);
 
     const link = document.createElement("a");
@@ -170,18 +170,16 @@
     link.href = window.URL.createObjectURL(
       new Blob([massageAll], { type: "text/plain" }),
     );
-    link.download = "slack_messages.csv";
+    link.download = "calendar_events.csv";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     return true;
-    */
   };
 
   const exportMessage = async () => {
     log(">>> exportMessage");
 
-    /* Gather messages in all pages */
     const messages = await getMessage();
 
     download(messages);
