@@ -3,6 +3,7 @@ import { ConsoleHandler, getLogger, setup } from "jsr:@std/log";
 import { browserHistoryCsvToRecord } from "./browserHistoryCsvToRecord.ts";
 import {
   BrowserReportRecord,
+  CalendarReportRecord,
   Config,
   Exclusions,
   ReportRecord,
@@ -17,6 +18,7 @@ import {
 import { Decrypter } from "age-encryption";
 import { createDefaultServices } from "./services.ts";
 import { slackMessageCsvToRecord } from "./slackMessageCsvToRecord.ts";
+import { calendarEventsCsvToRecord } from "./calendarEventsCsvToRecord.ts";
 
 // Configure logging
 setup({
@@ -65,6 +67,14 @@ for await (
 
       records.push(
         ...slackMessageCsvToRecord(
+          text,
+        ),
+      );
+    } else if (parsedPath.name.startsWith("calendar_events")) {
+      const text = await services.fileSystem.readTextFile(path);
+
+      records.push(
+        ...calendarEventsCsvToRecord(
           text,
         ),
       );
@@ -151,6 +161,14 @@ for (const record of filteredRecords) {
     }
 
     excludedRecords.push(record);
+  } else if (record instanceof CalendarReportRecord) {
+    if (
+      !exclusions.notCalendarNames?.some((name) => name === record.calendarName)
+    ) {
+      continue;
+    }
+
+    excludedRecords.push(record);
   }
 }
 
@@ -169,6 +187,8 @@ for (const [date, records] of recordsByDay.entries()) {
       map.set(record.url, record);
     } else if (record instanceof SlackReportRecord) {
       map.set(record.message, record);
+    } else if (record instanceof CalendarReportRecord) {
+      map.set(record.title, record);
     }
   }
 
@@ -194,7 +214,20 @@ function formatRecordsToMarkdown(
     } else if (record instanceof SlackReportRecord) {
       content.push(`- ${time} - Slack #${record.channel}  `);
       content.push(...record.message.split("\n").map((line) => `  ${line}`));
+    } else if (record instanceof CalendarReportRecord) {
+      const hours = Math.floor(record.duration / (60 * 60 * 1000));
+      const minutes = Math.floor(
+        (record.duration % (60 * 60 * 1000)) / (60 * 1000),
+      );
+      const durationStr = hours > 0
+        ? minutes > 0 ? `${hours}h ${minutes}m` : `${hours}h`
+        : `${minutes}m`;
+
+      content.push(`- ${time} (${durationStr}) - Calendar  `);
+      content.push(`  ${record.title}  `);
     }
+
+    content.push("");
   }
 
   return content.join("\n");
