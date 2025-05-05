@@ -1,7 +1,6 @@
 (async () => {
-  const DEBUG_MODE = false;
   const log = (value) => {
-    if (DEBUG_MODE === true) {
+    if (globalThis.DEBUG_MODE === true) {
       console.log(value);
     }
   };
