@@ -49,7 +49,29 @@ export class SlackReportRecord extends ReportRecordBase {
   }
 }
 
-export type ReportRecord = BrowserReportRecord | SlackReportRecord;
+export class CalendarReportRecord extends ReportRecordBase {
+  title: string;
+  description: string;
+
+  constructor(epoch: number, title: string, description: string) {
+    super(epoch);
+    this.title = title;
+    this.description = description;
+  }
+
+  dump(): string {
+    return `${this.epoch} ${this.title} (${this.description})`;
+  }
+
+  hash(): string {
+    return this.dump();
+  }
+}
+
+export type ReportRecord =
+  | BrowserReportRecord
+  | SlackReportRecord
+  | CalendarReportRecord;
 
 /**
  * Application configuration information
@@ -90,6 +112,9 @@ export const exclusionsSchema = z.object({
       message: z.array(z.string()),
     }),
   ).optional(),
+
+  // Calendar names to exclude
+  calendarNames: z.array(z.string()).optional(),
 });
 
 /**
