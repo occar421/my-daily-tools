@@ -8,7 +8,7 @@ abstract class ReportRecordBase {
   }
 
   abstract dump(): string;
-  abstract hash(): string;
+  abstract keyInDay(): string;
 }
 
 export class BrowserReportRecord extends ReportRecordBase {
@@ -25,8 +25,8 @@ export class BrowserReportRecord extends ReportRecordBase {
     return `${this.epoch} ${this.title} (${this.url})`;
   }
 
-  hash(): string {
-    return this.dump();
+  keyInDay(): string {
+    return this.url;
   }
 }
 
@@ -44,8 +44,8 @@ export class SlackReportRecord extends ReportRecordBase {
     return `${this.epoch} #${this.channel} ${this.message}`;
   }
 
-  hash(): string {
-    return this.dump();
+  keyInDay(): string {
+    return this.message;
   }
 }
 
@@ -70,8 +70,8 @@ export class CalendarReportRecord extends ReportRecordBase {
     return `${this.epoch} ${this.title} ${this.duration} (${this.calendarName})`;
   }
 
-  hash(): string {
-    return this.dump();
+  keyInDay(): string {
+    return this.title;
   }
 }
 

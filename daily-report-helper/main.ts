@@ -84,23 +84,8 @@ for await (
   }
 }
 
-// Remove duplicate records (same epoch, title, and meta) using Map for O(n) complexity
-const uniqueMap: Map<string, ReportRecord> = new Map();
-for (const record of records) {
-  // Create a unique key for each record
-  const key = record.hash();
-  // Only add to map if this key doesn't exist yet
-  if (!uniqueMap.has(key)) {
-    uniqueMap.set(key, record);
-  }
-}
-
-// Convert map values back to array
-const uniqueRecords = Array.from(uniqueMap.values());
-uniqueRecords.sort((a, b) => a.epoch - b.epoch);
-
 const filteredRecords = filterRecordsByEpochRange(
-  uniqueRecords,
+  records,
   params.startEpoch,
   params.endEpoch,
 );
@@ -180,16 +165,10 @@ const distinctRecordsByDay = new Map<string, ReportRecord[]>();
 for (const [date, records] of recordsByDay.entries()) {
   const map = new Map<string, ReportRecord>();
   for (const record of records) {
-    if (record instanceof BrowserReportRecord) {
-      if (map.has(record.url)) {
-        continue;
-      }
-      map.set(record.url, record);
-    } else if (record instanceof SlackReportRecord) {
-      map.set(record.message, record);
-    } else if (record instanceof CalendarReportRecord) {
-      map.set(record.title, record);
+    if (map.has(record.keyInDay())) {
+      continue;
     }
+    map.set(record.keyInDay(), record);
   }
 
   distinctRecordsByDay.set(
