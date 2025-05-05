@@ -141,10 +141,12 @@ for (const record of filteredRecords) {
     }
 
     // slackMessagesの条件によって除外
-    if (exclusions.slackMessages?.some((item) =>
-      item.channel === record.channel &&
-      item.message.some((pattern) => record.message.includes(pattern))
-    )) {
+    if (
+      exclusions.slackMessages?.some((item) =>
+        item.channel === record.channel &&
+        item.message.some((pattern) => record.message.includes(pattern))
+      )
+    ) {
       continue;
     }
 

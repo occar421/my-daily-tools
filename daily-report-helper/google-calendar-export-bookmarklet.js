@@ -6,7 +6,8 @@
     }
   };
 
-  const GOOGLE_CALENDAR_URL_PATTERN = /^https:\/\/calendar\.google\.com\/calendar\/u\/\d\/r\/(\S+)\/\d+\/\d+\/\d+\/?.*$/;
+  const GOOGLE_CALENDAR_URL_PATTERN =
+    /^https:\/\/calendar\.google\.com\/calendar\/u\/\d\/r\/(\S+)\/\d+\/\d+\/\d+\/?.*$/;
 
   /* Note: Skipping Task, all-day schedule, silent mode, and absence */
   const getMessage = async () => {
@@ -14,7 +15,9 @@
 
     const match = window.location.href.match(GOOGLE_CALENDAR_URL_PATTERN);
     if (!match) {
-      return Promise.reject("This bookmarklet only works on Google Calendar pages.");
+      return Promise.reject(
+        "This bookmarklet only works on Google Calendar pages.",
+      );
     }
 
     const viewType = match[1];
@@ -29,7 +32,12 @@
     }
   };
 
-  const STATUS_MAP = new Map([["承諾", "accepted"], ["辞退", "declined"], ["未定", "tentative"], ["出欠確認が必要", "rsvp"]]);
+  const STATUS_MAP = new Map([
+    ["承諾", "accepted"],
+    ["辞退", "declined"],
+    ["未定", "tentative"],
+    ["出欠確認が必要", "rsvp"],
+  ]);
 
   const getMessageInMonth = async () => {
     const datePopoverButtonSelector = "[data-opens-day-overview=true]";
@@ -39,7 +47,9 @@
 
     const messages = [];
 
-    const datePopoverButtons = document.querySelectorAll(datePopoverButtonSelector);
+    const datePopoverButtons = document.querySelectorAll(
+      datePopoverButtonSelector,
+    );
     for await (const datePopoverButton of datePopoverButtons) {
       datePopoverButton.click();
       await wait(100);
@@ -50,11 +60,17 @@
         const schedule = event.querySelector(scheduleSelector);
         const elements = schedule.textContent.split("、");
 
-        if (elements.at(0) === "終日" || elements.at(0) === "タスク" || elements.at(0).startsWith("タスク:")) {
+        if (
+          elements.at(0) === "終日" || elements.at(0) === "タスク" ||
+          elements.at(0).startsWith("タスク:")
+        ) {
           continue;
         }
 
-        if (elements.at(1).startsWith("不在") || elements.at(1).startsWith("サイレント モード:")) {
+        if (
+          elements.at(1).startsWith("不在") ||
+          elements.at(1).startsWith("サイレント モード:")
+        ) {
           continue;
         }
 
@@ -74,12 +90,19 @@
 
         const locationString = elements.at(4);
         const locationMatch = locationString.match(/^場所: (.+)$/);
-        const location = locationMatch?.[1] ?? (locationString === "場所の指定なし" ? "" : locationString);
+        const location = locationMatch?.[1] ??
+          (locationString === "場所の指定なし" ? "" : locationString);
 
-        messages.push([startDatetime, endDatetime, title, calendarName, reply, location]);
+        messages.push([
+          startDatetime,
+          endDatetime,
+          title,
+          calendarName,
+          reply,
+          location,
+        ]);
       }
     }
-
 
     return messages;
   };
@@ -105,13 +128,17 @@
   const parseJapaneseDate = (dateStr) => {
     const match = dateStr.match(/(\d+)年\s*(\d+)月\s*(\d+)日/);
     if (!match) return null;
-    return new Date(parseInt(match[1]), parseInt(match[2]) - 1, parseInt(match[3]));
+    return new Date(
+      parseInt(match[1]),
+      parseInt(match[2]) - 1,
+      parseInt(match[3]),
+    );
   };
 
   const addTime = (date, timeStr) => {
     const clonedDate = new Date(date);
 
-    const {hours, minutes} = parseTime(timeStr);
+    const { hours, minutes } = parseTime(timeStr);
     clonedDate.setHours(hours);
     clonedDate.setMinutes(minutes);
     return clonedDate;
@@ -119,25 +146,7 @@
 
   const parseTime = (timeStr) => {
     const [hours, minutes] = timeStr.split(":").map(Number);
-    return {hours, minutes};
-  };
-
-  /**
-   * timestamp to datetame
-   * @param timestamp
-   * @returns {string}
-   */
-  const timestampToTime = (timestamp) => {
-    const d = new Date(timestamp * Math.pow(10, 13 - timestamp.length));
-    const weekday = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-    const yyyy = d.getFullYear();
-    const mm = ("0" + (d.getMonth() + 1)).slice(-2);
-    const dd = ("0" + d.getDate()).slice(-2);
-    const hh = ("0" + d.getHours()).slice(-2);
-    const mi = ("0" + d.getMinutes()).slice(-2);
-    const ss = ("0" + d.getSeconds()).slice(-2);
-    const week = weekday[d.getDay()];
-    return `${yyyy}-${mm}-${dd} ${week} ${hh}:${mi}:${ss}`;
+    return { hours, minutes };
   };
 
   /**
