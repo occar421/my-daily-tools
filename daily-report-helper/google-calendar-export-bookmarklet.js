@@ -73,20 +73,39 @@
         eventMap.set(id, schedule.textContent);
       }
     }
+
+    return parseEvents(eventMap);
+  };
+
+  const getMessageInWeek = async () => {
+    log(">>> getMessageInWeek");
+
+    const dateSelector = ".BiKU4b[data-datekey] [data-eventchip]";
+    const scheduleSelector = ".XuJrye";
+
+    const eventMap = new Map();
+
+    const events = document.querySelectorAll(dateSelector);
+    for (const event of events) {
+      const id = event.dataset.eventid;
+      const schedule = event.querySelector(scheduleSelector);
+      eventMap.set(id, schedule.textContent);
+    }
+
+    return parseEvents(eventMap);
+  };
+  
+  const parseEvents = (eventMap) => {
     const parsedEvents = eventMap.values().map((schedule) =>
       parseScheduleText(schedule)
     )
       .filter(Boolean).toArray();
+
     parsedEvents.sort((a, b) =>
       a.startDatetime.getTime() - b.startDatetime.getTime()
     );
+
     return parsedEvents;
-  };
-
-  const getMessageInWeek = async () => {
-    alert(`"週" is not supported.`);
-
-    return [];
   };
 
   const parseScheduleText = (str) => {
