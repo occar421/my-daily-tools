@@ -219,7 +219,7 @@ function formatRecordsToMarkdown(
 logger.info(`レコードを${recordsByDay.size}日分に分割しました`);
 for (const [date, records] of distinctRecordsByDay.entries()) {
   const content = formatRecordsToMarkdown(date, records);
-  const filePath = join(import.meta.dirname ?? ".", "out", `${date}.md`);
+  const filePath = join(import.meta.dirname ?? ".", "out", `daily report ${date}.md`);
   await services.fileSystem.writeTextFile(filePath, content);
   logger.info(`${date}: ${records.length} レコード`);
 }
