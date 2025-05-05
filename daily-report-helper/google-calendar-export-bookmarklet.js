@@ -94,7 +94,7 @@
 
     return parseEvents(eventMap);
   };
-  
+
   const parseEvents = (eventMap) => {
     const parsedEvents = eventMap.values().map((schedule) =>
       parseScheduleText(schedule)
@@ -204,9 +204,15 @@
     const massageAll =
       "startDatetime,endDatetime,type,title,calendarName,status,location\n" +
       messages.map((row) =>
-        `${row.startDatetime.toISOString()},${row.endDatetime.toISOString()},${row.type},${row.title},${row.calendarName},${
-          row.status ?? "unknown"
-        },${row.location !== null ? row.location : "unknown"}`
+        [
+          row.startDatetime.toISOString(),
+          row.endDatetime.toISOString(),
+          row.type,
+          row.title,
+          row.calendarName,
+          row.status ?? "unknown",
+          row.location !== null ? row.location : "unknown",
+        ].map((field) => `"${field.replace(/"/g, '""')}"`).join(",")
       ).join("\n");
     log("download | messages.length " + messages.length);
     log("download | massageAll.length " + massageAll.length);
