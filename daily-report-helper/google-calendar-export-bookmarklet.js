@@ -84,8 +84,6 @@
   };
 
   const getMessageInWeek = async () => {
-    const dateSelector = ".BiKU4b[data-datekey]";
-
     alert(`"週" is not supported.`);
 
     return [];

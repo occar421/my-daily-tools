@@ -102,7 +102,6 @@
     const messageTimestampAttributeKey = "data-ts";
     const channelNameSelector = ".c-message_group__header";
     const messageSenderSelector = ".c-message__sender_button";
-    const timestampLabelSelector = ".c-timestamp__label";
 
     messagePack.pushed = false;
     let messageGroups = document.querySelectorAll(messageGroupSelector);
