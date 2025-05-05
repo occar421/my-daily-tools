@@ -45,6 +45,7 @@
     const eventSelector = ".N8ryne [data-eventchip]";
     const scheduleSelector = ".XuJrye";
 
+    const eventSet = new Set();
     const messages = [];
 
     const datePopoverButtons = document.querySelectorAll(
@@ -57,6 +58,14 @@
       const popover = document.querySelector(popoverSelector);
       const events = popover.querySelectorAll(eventSelector);
       for await (const event of events) {
+        const id = event.dataset.eventid;
+
+        if (eventSet.has(id)) {
+          continue;
+        }
+
+        eventSet.add(id);
+
         const schedule = event.querySelector(scheduleSelector);
         const elements = schedule.textContent.split("、");
 
