@@ -29,6 +29,8 @@
     }
   };
 
+  const STATUS_MAP = new Map([["承諾", "accepted"], ["辞退", "declined"], ["未定", "tentative"], ["出欠確認が必要", "rsvp"]]);
+
   const getMessageInMonth = async () => {
     const datePopoverButtonSelector = "[data-opens-day-overview=true]";
     const popoverSelector = ".uW2Fw-P5QLlc";
@@ -62,12 +64,19 @@
         const startDatetime = addTime(date, start);
         const endDatetime = addTime(date, end);
 
-        elements.shift();
-        elements.pop();
-        const result = [startDatetime, endDatetime,...elements];
+        const titleString = elements.at(1);
+        const titleMatch = titleString.match(/^「(.*)」$/);
+        const title = titleMatch?.[1] ?? titleString;
 
+        const calendarName = elements.at(2);
 
-        messages.push(result);
+        const reply = STATUS_MAP.get(elements.at(3)) ?? "unknown";
+
+        const locationString = elements.at(4);
+        const locationMatch = locationString.match(/^場所: (.+)$/);
+        const location = locationMatch?.[1] ?? (locationString === "場所の指定なし" ? "" : locationString);
+
+        messages.push([startDatetime, endDatetime, title, calendarName, reply, location]);
       }
     }
 
