@@ -39,45 +39,48 @@
   ]);
 
   const getMessageInMonth = async () => {
+    log(">>> getMessageInMonth");
+
+    const calendarCellEventsSelector = ".qLWd9c [data-eventchip]";
     const datePopoverButtonSelector = "[data-opens-day-overview=true]";
-    const popoverSelector = ".uW2Fw-P5QLlc";
-    const eventSelector = ".N8ryne [data-eventchip]";
+    const popoverEventsSelector = ".uW2Fw-P5QLlc .N8ryne [data-eventchip]";
     const scheduleSelector = ".XuJrye";
 
-    const eventSet = new Set();
-    const messages = [];
+    const eventMap = new Map();
+
+    /* get events from calendar cells */
+    const calendarCellEvents = document.querySelectorAll(
+      calendarCellEventsSelector,
+    );
+    for (const event of calendarCellEvents) {
+      const id = event.dataset.eventid;
+      const schedule = event.querySelector(scheduleSelector);
+      eventMap.set(id, schedule.textContent);
+    }
 
     /* get events from popover */
     const datePopoverButtons = document.querySelectorAll(
       datePopoverButtonSelector,
     );
-    for await (const datePopoverButton of datePopoverButtons) {
+    for (const datePopoverButton of datePopoverButtons) {
       datePopoverButton.click();
       await wait(100);
 
-      const popover = document.querySelector(popoverSelector);
-      const events = popover.querySelectorAll(eventSelector);
-      for await (const event of events) {
+      const events = document.querySelectorAll(popoverEventsSelector);
+      for (const event of events) {
         const id = event.dataset.eventid;
-
-        if (eventSet.has(id)) {
-          continue;
-        }
-
-        eventSet.add(id);
-
         const schedule = event.querySelector(scheduleSelector);
-        const result = parseScheduleText(schedule.textContent);
-
-        if (!result) {
-          continue;
-        }
-
-        messages.push(result);
+        eventMap.set(id, schedule.textContent);
       }
     }
-
-    return messages;
+    const parsedEvents = eventMap.values().map((schedule) =>
+      parseScheduleText(schedule)
+    )
+      .filter(Boolean).toArray();
+    parsedEvents.sort((a, b) =>
+      a.startDatetime.getTime() - b.startDatetime.getTime()
+    );
+    return parsedEvents;
   };
 
   const getMessageInWeek = async () => {
@@ -89,6 +92,8 @@
   };
 
   const parseScheduleText = (str) => {
+    log(">>> parseScheduleText " + str);
+
     const elements = str.split("、");
 
     if (
@@ -124,7 +129,7 @@
     const location = locationMatch?.[1] ??
       (locationString === "場所の指定なし" ? "" : null);
 
-    return {
+    const result = {
       startDatetime,
       endDatetime,
       title,
@@ -132,6 +137,10 @@
       status,
       location,
     };
+
+    log(">>> parseScheduleText " + JSON.stringify(result));
+
+    return result;
   };
 
   /**
