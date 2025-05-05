@@ -154,6 +154,8 @@ for (const record of filteredRecords) {
     }
 
     excludedRecords.push(record);
+  } else {
+    logger.error(`Unknown record type: ${record}`);
   }
 }
 
@@ -204,6 +206,8 @@ function formatRecordsToMarkdown(
 
       content.push(`- ${time} (${durationStr}) - Calendar  `);
       content.push(`  ${record.title}  `);
+    } else {
+      logger.error(`Unknown record type: ${record}`);
     }
 
     content.push("");
