@@ -1,5 +1,6 @@
 {
   "tasks": {},
+  "workspace": ["./daily-report-helper"],
   "imports": {
     "@std/assert": "jsr:@std/assert@1",
     "age-encryption": "npm:age-encryption@^0.2.3",
