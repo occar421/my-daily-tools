@@ -55,40 +55,41 @@ for await (
     const path = join(baseDir, entry.name);
     const parsedPath = parsePath(path);
 
-    if (parsedPath.name.startsWith("history")) {
-      const text = await services.fileSystem.readTextFile(path);
-      fileCount++;
+    switch (parsedPath.ext) {
+      case "csv": {
+        const text = await services.fileSystem.readTextFile(path);
+        if (parsedPath.name.startsWith("history")) {
+          const browserConverter = new BrowserHistoryCsvConverter();
+          const browserRecords = browserConverter.convert(text);
 
-      const browserConverter = new BrowserHistoryCsvConverter();
-      const browserRecords = browserConverter.convert(text);
+          records.push(
+            ...browserRecords,
+          );
 
-      records.push(
-        ...browserRecords,
-      );
+          fileCount++;
+          logger.info(`Read file as browser history: ${parsedPath.base}`);
+        } else if (parsedPath.name.startsWith("slack_messages")) {
 
-      logger.info(`Read file as browser history: ${parsedPath.base}`);
-    } else if (parsedPath.name.startsWith("slack_messages")) {
-      const text = await services.fileSystem.readTextFile(path);
-      fileCount++;
+          const slackConverter = new SlackMessageCsvConverter();
+          const slackRecords = slackConverter.convert(text);
 
-      const slackConverter = new SlackMessageCsvConverter();
-      const slackRecords = slackConverter.convert(text);
+          records.push(
+            ...slackRecords,
+          );
 
-      records.push(
-        ...slackRecords,
-      );
+          fileCount++;
+          logger.info(`Read file as slack: ${parsedPath.base}`);
+        } else if (parsedPath.name.startsWith("calendar_events")) {
+          const calendarConverter = new CalendarEventsCsvConverter();
+          const calendarRecords = calendarConverter.convert(text);
+          records.push(
+            ...calendarRecords,
+          );
 
-      logger.info(`Read file as slack: ${parsedPath.base}`);
-    } else if (parsedPath.name.startsWith("calendar_events")) {
-      const text = await services.fileSystem.readTextFile(path);
-      fileCount++;
-      const calendarConverter = new CalendarEventsCsvConverter();
-      const calendarRecords = calendarConverter.convert(text);
-      records.push(
-        ...calendarRecords,
-      );
-
-      logger.info(`Read file as calendar: ${parsedPath.base}`);
+          fileCount++;
+          logger.info(`Read file as calendar: ${parsedPath.base}`);
+        }
+      }
     }
   }
 }
