@@ -46,6 +46,7 @@ const exclusions = await getExclusions(config);
 const baseDir = join(import.meta.dirname ?? ".", "data");
 
 const records: ReportRecord[] = [];
+let fileCount = 0;
 
 for await (
   const entry of Deno.readDir(baseDir)
@@ -56,6 +57,7 @@ for await (
 
     if (parsedPath.name.startsWith("history")) {
       const text = await services.fileSystem.readTextFile(path);
+      fileCount++;
 
       records.push(
         ...browserHistoryCsvToRecord(
@@ -66,6 +68,7 @@ for await (
       logger.info(`Read file as browser history: ${parsedPath.base}`);
     } else if (parsedPath.name.startsWith("slack_messages")) {
       const text = await services.fileSystem.readTextFile(path);
+      fileCount++;
 
       records.push(
         ...slackMessageCsvToRecord(
@@ -75,8 +78,8 @@ for await (
 
       logger.info(`Read file as slack: ${parsedPath.base}`);
     } else if (parsedPath.name.startsWith("calendar_events")) {
-
       const text = await services.fileSystem.readTextFile(path);
+      fileCount++;
       records.push(
         ...calendarEventsCsvToRecord(
           text,
@@ -87,6 +90,7 @@ for await (
     }
   }
 }
+logger.info(`合計${fileCount}個のファイルを読み込みました`);
 
 const filteredRecords = filterRecordsByEpochRange(
   records,
