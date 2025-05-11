@@ -18,6 +18,14 @@ export class SlackMessageCsvConverter extends BaseCsvConverter {
   }
 
   /**
+   * このコンバーターの名前を返す
+   * @returns コンバーターの名前
+   */
+  public override getConverterName(): string {
+    return "Slackメッセージ";
+  }
+
+  /**
    * パース済みのCSVデータからレコードを作成する
    * @param records パース済みのCSVデータ
    * @returns 抽出されたRecord型オブジェクトの配列

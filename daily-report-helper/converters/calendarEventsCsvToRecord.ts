@@ -21,6 +21,14 @@ export class CalendarEventsCsvConverter extends BaseCsvConverter {
   }
 
   /**
+   * このコンバーターの名前を返す
+   * @returns コンバーターの名前
+   */
+  public override getConverterName(): string {
+    return "カレンダーイベント";
+  }
+
+  /**
    * パース済みのCSVデータからレコードを作成する
    * @param records パース済みのCSVデータ
    * @returns 抽出されたRecord型オブジェクトの配列

@@ -57,11 +57,11 @@ for await (
       const text = await services.fileSystem.readTextFile(path);
 
       try {
-        const convertedRecords = convertCsv(text);
+        const { records: convertedRecords, converterName } = convertCsv(text);
         records.push(...convertedRecords);
 
         fileCount++;
-        logger.info(`Read file: ${parsedPath.base}`);
+        logger.info(`Read file as ${converterName}: ${parsedPath.base}`);
       } catch (error) {
         logger.error(`Failed to convert file: ${parsedPath.base}`, error);
       }

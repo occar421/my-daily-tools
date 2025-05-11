@@ -10,7 +10,9 @@ import { CalendarEventsCsvConverter } from "./calendarEventsCsvToRecord.ts";
  * @returns 抽出されたRecord型オブジェクトの配列
  * @throws ヘッダー行が認識できない場合
  */
-export function convertCsv(text: string): ReportRecord[] {
+export function convertCsv(
+  text: string,
+): { records: ReportRecord[]; converterName: string } {
   const csv = parseCsv(text, { skipFirstRow: true, strip: true });
   if (csv.length === 0) {
     throw new Error("CSVファイルが空です");
@@ -28,7 +30,10 @@ export function convertCsv(text: string): ReportRecord[] {
   for (const converter of converters) {
     const expectedHeaders = converter.getExpectedHeaders();
     if (expectedHeaders.every((header) => headers.includes(header))) {
-      return converter.convertRecords(csv);
+      return {
+        records: converter.convertRecords(csv),
+        converterName: converter.getConverterName(),
+      };
     }
   }
 

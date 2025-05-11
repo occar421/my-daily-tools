@@ -23,6 +23,12 @@ export abstract class BaseCsvConverter {
   public abstract getExpectedHeaders(): readonly string[];
 
   /**
+   * このコンバーターの名前を返す
+   * @returns コンバーターの名前
+   */
+  public abstract getConverterName(): string;
+
+  /**
    * 日付文字列をエポック時間に変換する
    * @param dateStr 日付文字列
    * @returns エポック時間（ミリ秒）
