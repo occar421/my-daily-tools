@@ -30,4 +30,4 @@ export abstract class BaseCsvConverter {
 
     return epoch;
   }
-} 
+}

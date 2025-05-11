@@ -33,7 +33,9 @@ export class SlackMessageCsvConverter extends BaseCsvConverter {
       try {
         // 日時文字列をエポック時間に変換
         // フォーマットは「YYYY-MM-DD Xxx HH:MM:SS」を想定
-        const epoch = this.parseDateToEpoch(row.datetime.replace(/\s[A-Za-z]{3}\s/, " "));
+        const epoch = this.parseDateToEpoch(
+          row.datetime.replace(/\s[A-Za-z]{3}\s/, " "),
+        );
 
         // ReportRecordオブジェクトを作成して配列に追加
         records.push(new SlackReportRecord(epoch, row.channelName, message));

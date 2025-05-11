@@ -80,7 +80,10 @@ export class BrowserHistoryCsvConverter extends BaseCsvConverter {
         // Create Record object and add it to the array
         records.push(new BrowserReportRecord(epoch, title, url.href));
       } catch (error) {
-        this.logger.error(`Date conversion error: ${row.date} ${row.time}`, error);
+        this.logger.error(
+          `Date conversion error: ${row.date} ${row.time}`,
+          error,
+        );
       }
     }
 
