@@ -205,7 +205,10 @@ function formatRecordsToMarkdown(
 }
 
 logger.info(`レコードを${recordsByDay.size}日分に分割しました`);
-for (const [date, records] of distinctRecordsByDay.entries()) {
+
+const recs = [...distinctRecordsByDay.entries()];
+recs.sort(([a], [b]) => a.localeCompare(b));
+for await (const [date, records] of recs) { 
   const content = formatRecordsToMarkdown(date, records);
   const filePath = join(
     import.meta.dirname ?? ".",
