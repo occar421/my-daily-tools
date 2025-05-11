@@ -16,7 +16,7 @@ import {
 } from "./utils.ts";
 import { Decrypter } from "age-encryption";
 import { createDefaultServices } from "./services.ts";
-import { BaseCsvConverter } from "./converters/baseCsvConverter.ts";
+import { convertCsv } from "./converters/index.ts";
 
 // Configure logging
 setup({
@@ -57,7 +57,7 @@ for await (
       const text = await services.fileSystem.readTextFile(path);
 
       try {
-        const convertedRecords = BaseCsvConverter.convertCsv(text);
+        const convertedRecords = convertCsv(text);
         records.push(...convertedRecords);
 
         fileCount++;
