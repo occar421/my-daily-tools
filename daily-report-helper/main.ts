@@ -1,6 +1,6 @@
 import { join, parse as parsePath } from "jsr:@std/path";
 import { ConsoleHandler, getLogger, setup } from "jsr:@std/log";
-import { browserHistoryCsvToRecord } from "./browserHistoryCsvToRecord.ts";
+import { BrowserHistoryCsvConverter } from "./browserHistoryCsvToRecord.ts";
 import {
   BrowserReportRecord,
   CalendarReportRecord,
@@ -17,11 +17,8 @@ import {
 } from "./utils.ts";
 import { Decrypter } from "age-encryption";
 import { createDefaultServices } from "./services.ts";
-import { slackMessageCsvToRecord } from "./slackMessageCsvToRecord.ts";
-import { calendarEventsCsvToRecord } from "./calendarEventsCsvToRecord.ts";
-import { BrowserHistoryCsvConverter } from "./BrowserHistoryCsvConverter.ts";
-import { SlackMessageCsvConverter } from "./SlackMessageCsvConverter.ts";
-import { CalendarEventsCsvConverter } from "./CalendarEventsCsvConverter.ts";
+import { SlackMessageCsvConverter } from "./slackMessageCsvToRecord.ts";
+import { CalendarEventsCsvConverter } from "./calendarEventsCsvToRecord.ts";
 
 // Configure logging
 setup({
