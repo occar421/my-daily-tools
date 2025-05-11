@@ -1,6 +1,5 @@
 import { join, parse as parsePath } from "jsr:@std/path";
 import { ConsoleHandler, getLogger, setup } from "jsr:@std/log";
-import { BrowserHistoryCsvConverter } from "./browserHistoryCsvToRecord.ts";
 import {
   BrowserReportRecord,
   CalendarReportRecord,
@@ -17,8 +16,6 @@ import {
 } from "./utils.ts";
 import { Decrypter } from "age-encryption";
 import { createDefaultServices } from "./services.ts";
-import { SlackMessageCsvConverter } from "./slackMessageCsvToRecord.ts";
-import { CalendarEventsCsvConverter } from "./calendarEventsCsvToRecord.ts";
 import { BaseCsvConverter } from "./baseCsvConverter.ts";
 
 // Configure logging
@@ -60,8 +57,7 @@ for await (
       const text = await services.fileSystem.readTextFile(path);
 
       try {
-        const converter = BaseCsvConverter.createConverter(text);
-        const convertedRecords = converter.convert(text);
+        const convertedRecords = BaseCsvConverter.convertCsv(text);
         records.push(...convertedRecords);
 
         fileCount++;

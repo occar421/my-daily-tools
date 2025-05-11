@@ -22,7 +22,7 @@ export class SlackMessageCsvConverter extends BaseCsvConverter {
    * @param records パース済みのCSVデータ
    * @returns 抽出されたRecord型オブジェクトの配列
    */
-  protected override convertRecords(
+  public override convertRecords(
     records: Record<typeof SlackMessageCsvConverter.EXPECTED_HEADERS[number], string>[],
   ): ReportRecord[] {
     const slackRecords: ReportRecord[] = [];

@@ -18,7 +18,7 @@ export abstract class BaseCsvConverter {
    */
   public convert(text: string): ReportRecord[] {
     const csv = parseCsv(text, { skipFirstRow: true, strip: true });
-    return this.convertRecords(csv);
+    return this.convertRecords(csv as Record<string, string>[]);
   }
 
   /**
@@ -26,13 +26,15 @@ export abstract class BaseCsvConverter {
    * @param records パース済みのCSVデータ
    * @returns 抽出されたRecord型オブジェクトの配列
    */
-  protected abstract convertRecords(records: Record<string, string>[]): ReportRecord[];
+  public abstract convertRecords(
+    records: Record<string, string>[],
+  ): ReportRecord[];
 
   /**
    * このコンバーターが期待するCSVヘッダーを返す
    * @returns 期待するヘッダーの配列
    */
-  public abstract getExpectedHeaders(): string[];
+  public abstract getExpectedHeaders(): readonly string[];
 
   /**
    * 日付文字列をエポック時間に変換する
@@ -52,13 +54,13 @@ export abstract class BaseCsvConverter {
   }
 
   /**
-   * CSVのヘッダー行に基づいて適切なコンバーターを生成する
+   * CSVテキストを適切なコンバーターで変換する
    * @param text CSVテキスト
-   * @returns 適切なコンバーターのインスタンス
+   * @returns 抽出されたRecord型オブジェクトの配列
    * @throws ヘッダー行が認識できない場合
    */
-  public static createConverter(text: string): BaseCsvConverter {
-    const csv = parseCsv(text, { skipFirstRow: false, strip: true });
+  public static convertCsv(text: string): ReportRecord[] {
+    const csv = parseCsv(text, { skipFirstRow: true, strip: true });
     if (csv.length === 0) {
       throw new Error("CSVファイルが空です");
     }
@@ -75,7 +77,7 @@ export abstract class BaseCsvConverter {
     for (const converter of converters) {
       const expectedHeaders = converter.getExpectedHeaders();
       if (expectedHeaders.every((header) => headers.includes(header))) {
-        return converter;
+        return converter.convertRecords(csv);
       }
     }
 

@@ -23,7 +23,7 @@ export class BrowserHistoryCsvConverter extends BaseCsvConverter {
    * @param records パース済みのCSVデータ
    * @returns 抽出されたRecord型オブジェクトの配列
    */
-  protected override convertRecords(
+  public override convertRecords(
     records: Record<typeof BrowserHistoryCsvConverter.EXPECTED_HEADERS[number], string>[],
   ): BrowserReportRecord[] {
     const browserRecords: BrowserReportRecord[] = [];
