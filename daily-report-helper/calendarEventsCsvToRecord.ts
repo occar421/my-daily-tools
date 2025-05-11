@@ -4,6 +4,22 @@ import { BaseCsvConverter } from "./baseCsvConverter.ts";
 
 export class CalendarEventsCsvConverter extends BaseCsvConverter {
   /**
+   * このコンバーターが期待するCSVヘッダーを返す
+   * @returns 期待するヘッダーの配列
+   */
+  public override getExpectedHeaders(): string[] {
+    return [
+      "startDatetime",
+      "endDatetime",
+      "type",
+      "title",
+      "calendarName",
+      "status",
+      "location",
+    ];
+  }
+
+  /**
    * CSVテキストからレコードを作成する
    * @param text CSVテキスト
    * @returns 抽出されたRecord型オブジェクトの配列

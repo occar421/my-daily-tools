@@ -19,6 +19,12 @@ export abstract class BaseCsvConverter {
   public abstract convert(text: string): ReportRecord[];
 
   /**
+   * このコンバーターが期待するCSVヘッダーを返す
+   * @returns 期待するヘッダーの配列
+   */
+  public abstract getExpectedHeaders(): string[];
+
+  /**
    * 日付文字列をエポック時間に変換する
    * @param dateStr 日付文字列
    * @returns エポック時間（ミリ秒）
@@ -49,38 +55,18 @@ export abstract class BaseCsvConverter {
 
     const headers = Object.keys(csv[0]);
 
-    // ブラウザ履歴のヘッダー
-    if (
-      headers.includes("date") &&
-      headers.includes("time") &&
-      headers.includes("title") &&
-      headers.includes("url") &&
-      headers.includes("transition")
-    ) {
-      return new BrowserHistoryCsvConverter();
-    }
+    // 各コンバーターのインスタンスを作成して、ヘッダーが一致するかチェック
+    const converters = [
+      new BrowserHistoryCsvConverter(),
+      new SlackMessageCsvConverter(),
+      new CalendarEventsCsvConverter(),
+    ];
 
-    // Slackメッセージのヘッダー
-    if (
-      headers.includes("datetime") &&
-      headers.includes("channelName") &&
-      headers.includes("sender") &&
-      headers.includes("message")
-    ) {
-      return new SlackMessageCsvConverter();
-    }
-
-    // カレンダーイベントのヘッダー
-    if (
-      headers.includes("startDatetime") &&
-      headers.includes("endDatetime") &&
-      headers.includes("type") &&
-      headers.includes("title") &&
-      headers.includes("calendarName") &&
-      headers.includes("status") &&
-      headers.includes("location")
-    ) {
-      return new CalendarEventsCsvConverter();
+    for (const converter of converters) {
+      const expectedHeaders = converter.getExpectedHeaders();
+      if (expectedHeaders.every((header) => headers.includes(header))) {
+        return converter;
+      }
     }
 
     throw new Error(

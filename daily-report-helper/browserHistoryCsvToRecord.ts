@@ -4,6 +4,14 @@ import { BaseCsvConverter } from "./baseCsvConverter.ts";
 
 export class BrowserHistoryCsvConverter extends BaseCsvConverter {
   /**
+   * このコンバーターが期待するCSVヘッダーを返す
+   * @returns 期待するヘッダーの配列
+   */
+  public override getExpectedHeaders(): string[] {
+    return ["date", "time", "title", "url", "transition"];
+  }
+
+  /**
    * CSVテキストからレコードを作成する
    * @param text CSVテキスト
    * @returns 抽出されたRecord型オブジェクトの配列
