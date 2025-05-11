@@ -53,7 +53,7 @@ for await (
     const path = join(baseDir, entry.name);
     const parsedPath = parsePath(path);
 
-    if (parsedPath.ext === "csv") {
+    if (parsedPath.ext === ".csv") {
       const text = await services.fileSystem.readTextFile(path);
 
       try {
@@ -65,6 +65,8 @@ for await (
       } catch (error) {
         logger.error(`Failed to convert file: ${parsedPath.base}`, error);
       }
+    } else {
+      logger.debug(`Skipping unsupported file: ${parsedPath.base}`);
     }
   }
 }
