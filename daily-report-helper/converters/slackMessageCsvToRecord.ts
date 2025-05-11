@@ -1,4 +1,4 @@
-import { ReportRecord, SlackReportRecord } from "./types.ts";
+import { ReportRecord, SlackReportRecord } from "../types.ts";
 import { BaseCsvConverter } from "./baseCsvConverter.ts";
 
 export class SlackMessageCsvConverter extends BaseCsvConverter {
@@ -23,7 +23,10 @@ export class SlackMessageCsvConverter extends BaseCsvConverter {
    * @returns 抽出されたRecord型オブジェクトの配列
    */
   public override convertRecords(
-    records: Record<typeof SlackMessageCsvConverter.EXPECTED_HEADERS[number], string>[],
+    records: Record<
+      typeof SlackMessageCsvConverter.EXPECTED_HEADERS[number],
+      string
+    >[],
   ): ReportRecord[] {
     const slackRecords: ReportRecord[] = [];
 
@@ -43,7 +46,9 @@ export class SlackMessageCsvConverter extends BaseCsvConverter {
         );
 
         // ReportRecordオブジェクトを作成して配列に追加
-        slackRecords.push(new SlackReportRecord(epoch, row.channelName, message));
+        slackRecords.push(
+          new SlackReportRecord(epoch, row.channelName, message),
+        );
       } catch (error) {
         this.logger.error(`日付変換エラー: ${row.datetime}`, error);
       }

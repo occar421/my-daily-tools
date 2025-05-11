@@ -1,5 +1,5 @@
 import { getLogger } from "jsr:@std/log";
-import { ReportRecord } from "./types.ts";
+import { ReportRecord } from "../types.ts";
 import { parse as parseCsv } from "jsr:@std/csv";
 import { BrowserHistoryCsvConverter } from "./browserHistoryCsvToRecord.ts";
 import { SlackMessageCsvConverter } from "./slackMessageCsvToRecord.ts";

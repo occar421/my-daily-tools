@@ -1,4 +1,4 @@
-import { BrowserReportRecord } from "./types.ts";
+import { BrowserReportRecord } from "../types.ts";
 import { BaseCsvConverter } from "./baseCsvConverter.ts";
 
 export class BrowserHistoryCsvConverter extends BaseCsvConverter {
@@ -24,7 +24,10 @@ export class BrowserHistoryCsvConverter extends BaseCsvConverter {
    * @returns 抽出されたRecord型オブジェクトの配列
    */
   public override convertRecords(
-    records: Record<typeof BrowserHistoryCsvConverter.EXPECTED_HEADERS[number], string>[],
+    records: Record<
+      typeof BrowserHistoryCsvConverter.EXPECTED_HEADERS[number],
+      string
+    >[],
   ): BrowserReportRecord[] {
     const browserRecords: BrowserReportRecord[] = [];
 

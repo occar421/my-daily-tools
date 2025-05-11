@@ -16,7 +16,7 @@ import {
 } from "./utils.ts";
 import { Decrypter } from "age-encryption";
 import { createDefaultServices } from "./services.ts";
-import { BaseCsvConverter } from "./baseCsvConverter.ts";
+import { BaseCsvConverter } from "./converters/baseCsvConverter.ts";
 
 // Configure logging
 setup({
