@@ -2,12 +2,20 @@ import { BrowserReportRecord } from "./types.ts";
 import { BaseCsvConverter } from "./baseCsvConverter.ts";
 
 export class BrowserHistoryCsvConverter extends BaseCsvConverter {
+  private static readonly EXPECTED_HEADERS = [
+    "date",
+    "time",
+    "title",
+    "url",
+    "transition",
+  ] as const;
+
   /**
    * このコンバーターが期待するCSVヘッダーを返す
    * @returns 期待するヘッダーの配列
    */
-  public override getExpectedHeaders(): string[] {
-    return ["date", "time", "title", "url", "transition"];
+  public override getExpectedHeaders(): readonly string[] {
+    return BrowserHistoryCsvConverter.EXPECTED_HEADERS;
   }
 
   /**
@@ -16,7 +24,7 @@ export class BrowserHistoryCsvConverter extends BaseCsvConverter {
    * @returns 抽出されたRecord型オブジェクトの配列
    */
   protected override convertRecords(
-    records: Record<"date" | "time" | "title" | "url" | "transition", string>[],
+    records: Record<typeof BrowserHistoryCsvConverter.EXPECTED_HEADERS[number], string>[],
   ): BrowserReportRecord[] {
     const browserRecords: BrowserReportRecord[] = [];
 

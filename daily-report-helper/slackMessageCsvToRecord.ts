@@ -1,14 +1,20 @@
-import { parse as parseCsv } from "jsr:@std/csv";
 import { ReportRecord, SlackReportRecord } from "./types.ts";
 import { BaseCsvConverter } from "./baseCsvConverter.ts";
 
 export class SlackMessageCsvConverter extends BaseCsvConverter {
+  private static readonly EXPECTED_HEADERS = [
+    "datetime",
+    "channelName",
+    "sender",
+    "message",
+  ] as const;
+
   /**
    * このコンバーターが期待するCSVヘッダーを返す
    * @returns 期待するヘッダーの配列
    */
-  public override getExpectedHeaders(): string[] {
-    return ["datetime", "channelName", "sender", "message"];
+  public override getExpectedHeaders(): readonly string[] {
+    return SlackMessageCsvConverter.EXPECTED_HEADERS;
   }
 
   /**
@@ -17,7 +23,7 @@ export class SlackMessageCsvConverter extends BaseCsvConverter {
    * @returns 抽出されたRecord型オブジェクトの配列
    */
   protected override convertRecords(
-    records: Record<"datetime" | "channelName" | "sender" | "message", string>[],
+    records: Record<typeof SlackMessageCsvConverter.EXPECTED_HEADERS[number], string>[],
   ): ReportRecord[] {
     const slackRecords: ReportRecord[] = [];
 

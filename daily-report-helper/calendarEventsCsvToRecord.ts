@@ -2,20 +2,22 @@ import { CalendarReportRecord, ReportRecord } from "./types.ts";
 import { BaseCsvConverter } from "./baseCsvConverter.ts";
 
 export class CalendarEventsCsvConverter extends BaseCsvConverter {
+  private static readonly EXPECTED_HEADERS = [
+    "startDatetime",
+    "endDatetime",
+    "type",
+    "title",
+    "calendarName",
+    "status",
+    "location",
+  ] as const;
+
   /**
    * このコンバーターが期待するCSVヘッダーを返す
    * @returns 期待するヘッダーの配列
    */
-  public override getExpectedHeaders(): string[] {
-    return [
-      "startDatetime",
-      "endDatetime",
-      "type",
-      "title",
-      "calendarName",
-      "status",
-      "location",
-    ];
+  public override getExpectedHeaders(): readonly string[] {
+    return CalendarEventsCsvConverter.EXPECTED_HEADERS;
   }
 
   /**
@@ -24,16 +26,7 @@ export class CalendarEventsCsvConverter extends BaseCsvConverter {
    * @returns 抽出されたRecord型オブジェクトの配列
    */
   protected override convertRecords(
-    records: Record<
-      | "startDatetime"
-      | "endDatetime"
-      | "type"
-      | "title"
-      | "calendarName"
-      | "status"
-      | "location",
-      string
-    >[],
+    records: Record<typeof CalendarEventsCsvConverter.EXPECTED_HEADERS[number], string>[],
   ): ReportRecord[] {
     const calendarRecords: ReportRecord[] = [];
 
