@@ -62,6 +62,8 @@ for await (
           text,
         ),
       );
+
+      logger.info(`Read file as browser history: ${parsedPath.base}`);
     } else if (parsedPath.name.startsWith("slack_messages")) {
       const text = await services.fileSystem.readTextFile(path);
 
@@ -70,17 +72,19 @@ for await (
           text,
         ),
       );
-    } else if (parsedPath.name.startsWith("calendar_events")) {
-      const text = await services.fileSystem.readTextFile(path);
 
+      logger.info(`Read file as slack: ${parsedPath.base}`);
+    } else if (parsedPath.name.startsWith("calendar_events")) {
+
+      const text = await services.fileSystem.readTextFile(path);
       records.push(
         ...calendarEventsCsvToRecord(
           text,
         ),
       );
-    }
 
-    logger.info(`Read file: ${parsedPath.base}`);
+      logger.info(`Read file as calendar: ${parsedPath.base}`);
+    }
   }
 }
 
