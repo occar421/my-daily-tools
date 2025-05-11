@@ -19,6 +19,9 @@ import { Decrypter } from "age-encryption";
 import { createDefaultServices } from "./services.ts";
 import { slackMessageCsvToRecord } from "./slackMessageCsvToRecord.ts";
 import { calendarEventsCsvToRecord } from "./calendarEventsCsvToRecord.ts";
+import { BrowserHistoryCsvConverter } from "./BrowserHistoryCsvConverter.ts";
+import { SlackMessageCsvConverter } from "./SlackMessageCsvConverter.ts";
+import { CalendarEventsCsvConverter } from "./CalendarEventsCsvConverter.ts";
 
 // Configure logging
 setup({
@@ -59,10 +62,11 @@ for await (
       const text = await services.fileSystem.readTextFile(path);
       fileCount++;
 
+      const browserConverter = new BrowserHistoryCsvConverter();
+      const browserRecords = browserConverter.convert(text);
+
       records.push(
-        ...browserHistoryCsvToRecord(
-          text,
-        ),
+        ...browserRecords,
       );
 
       logger.info(`Read file as browser history: ${parsedPath.base}`);
@@ -70,20 +74,21 @@ for await (
       const text = await services.fileSystem.readTextFile(path);
       fileCount++;
 
+      const slackConverter = new SlackMessageCsvConverter();
+      const slackRecords = slackConverter.convert(text);
+
       records.push(
-        ...slackMessageCsvToRecord(
-          text,
-        ),
+        ...slackRecords,
       );
 
       logger.info(`Read file as slack: ${parsedPath.base}`);
     } else if (parsedPath.name.startsWith("calendar_events")) {
       const text = await services.fileSystem.readTextFile(path);
       fileCount++;
+      const calendarConverter = new CalendarEventsCsvConverter();
+      const calendarRecords = calendarConverter.convert(text);
       records.push(
-        ...calendarEventsCsvToRecord(
-          text,
-        ),
+        ...calendarRecords,
       );
 
       logger.info(`Read file as calendar: ${parsedPath.base}`);
