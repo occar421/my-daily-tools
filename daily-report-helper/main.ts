@@ -19,6 +19,7 @@ import { Decrypter } from "age-encryption";
 import { createDefaultServices } from "./services.ts";
 import { SlackMessageCsvConverter } from "./slackMessageCsvToRecord.ts";
 import { CalendarEventsCsvConverter } from "./calendarEventsCsvToRecord.ts";
+import { BaseCsvConverter } from "./baseCsvConverter.ts";
 
 // Configure logging
 setup({
@@ -55,40 +56,18 @@ for await (
     const path = join(baseDir, entry.name);
     const parsedPath = parsePath(path);
 
-    switch (parsedPath.ext) {
-      case "csv": {
-        const text = await services.fileSystem.readTextFile(path);
-        if (parsedPath.name.startsWith("history")) {
-          const browserConverter = new BrowserHistoryCsvConverter();
-          const browserRecords = browserConverter.convert(text);
+    if (parsedPath.ext === "csv") {
+      const text = await services.fileSystem.readTextFile(path);
 
-          records.push(
-            ...browserRecords,
-          );
+      try {
+        const converter = BaseCsvConverter.createConverter(text);
+        const convertedRecords = converter.convert(text);
+        records.push(...convertedRecords);
 
-          fileCount++;
-          logger.info(`Read file as browser history: ${parsedPath.base}`);
-        } else if (parsedPath.name.startsWith("slack_messages")) {
-
-          const slackConverter = new SlackMessageCsvConverter();
-          const slackRecords = slackConverter.convert(text);
-
-          records.push(
-            ...slackRecords,
-          );
-
-          fileCount++;
-          logger.info(`Read file as slack: ${parsedPath.base}`);
-        } else if (parsedPath.name.startsWith("calendar_events")) {
-          const calendarConverter = new CalendarEventsCsvConverter();
-          const calendarRecords = calendarConverter.convert(text);
-          records.push(
-            ...calendarRecords,
-          );
-
-          fileCount++;
-          logger.info(`Read file as calendar: ${parsedPath.base}`);
-        }
+        fileCount++;
+        logger.info(`Read file: ${parsedPath.base}`);
+      } catch (error) {
+        logger.error(`Failed to convert file: ${parsedPath.base}`, error);
       }
     }
   }
