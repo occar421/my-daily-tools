@@ -1,4 +1,3 @@
-import { parse as parseCsv } from "jsr:@std/csv";
 import { BrowserReportRecord } from "./types.ts";
 import { BaseCsvConverter } from "./baseCsvConverter.ts";
 
@@ -12,25 +11,16 @@ export class BrowserHistoryCsvConverter extends BaseCsvConverter {
   }
 
   /**
-   * CSVテキストからレコードを作成する
-   * @param text CSVテキスト
+   * パース済みのCSVデータからレコードを作成する
+   * @param records パース済みのCSVデータ
    * @returns 抽出されたRecord型オブジェクトの配列
    */
-  public override convert(text: string): BrowserReportRecord[] {
-    const records: BrowserReportRecord[] = [];
+  protected override convertRecords(
+    records: Record<"date" | "time" | "title" | "url" | "transition", string>[],
+  ): BrowserReportRecord[] {
+    const browserRecords: BrowserReportRecord[] = [];
 
-    const csv: Record<
-      "date" | "time" | "title" | "url" | "transition",
-      string
-    >[] = parseCsv(
-      text,
-      {
-        skipFirstRow: true,
-        strip: true,
-      },
-    );
-
-    for (const row of csv) {
+    for (const row of records) {
       if (row.transition === "reload") {
         continue;
       }
@@ -86,7 +76,7 @@ export class BrowserHistoryCsvConverter extends BaseCsvConverter {
         const epoch = dateObj.getTime();
 
         // Create Record object and add it to the array
-        records.push(new BrowserReportRecord(epoch, title, url.href));
+        browserRecords.push(new BrowserReportRecord(epoch, title, url.href));
       } catch (error) {
         this.logger.error(
           `Date conversion error: ${row.date} ${row.time}`,
@@ -95,6 +85,6 @@ export class BrowserHistoryCsvConverter extends BaseCsvConverter {
       }
     }
 
-    return records;
+    return browserRecords;
   }
 }

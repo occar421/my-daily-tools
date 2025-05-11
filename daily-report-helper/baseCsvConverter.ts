@@ -16,7 +16,17 @@ export abstract class BaseCsvConverter {
    * @param text CSVテキスト
    * @returns 抽出されたRecord型オブジェクトの配列
    */
-  public abstract convert(text: string): ReportRecord[];
+  public convert(text: string): ReportRecord[] {
+    const csv = parseCsv(text, { skipFirstRow: true, strip: true });
+    return this.convertRecords(csv);
+  }
+
+  /**
+   * パース済みのCSVデータからレコードを作成する
+   * @param records パース済みのCSVデータ
+   * @returns 抽出されたRecord型オブジェクトの配列
+   */
+  protected abstract convertRecords(records: Record<string, string>[]): ReportRecord[];
 
   /**
    * このコンバーターが期待するCSVヘッダーを返す

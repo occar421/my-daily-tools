@@ -1,4 +1,3 @@
-import { parse as parseCsv } from "jsr:@std/csv";
 import { CalendarReportRecord, ReportRecord } from "./types.ts";
 import { BaseCsvConverter } from "./baseCsvConverter.ts";
 
@@ -20,14 +19,12 @@ export class CalendarEventsCsvConverter extends BaseCsvConverter {
   }
 
   /**
-   * CSVテキストからレコードを作成する
-   * @param text CSVテキスト
+   * パース済みのCSVデータからレコードを作成する
+   * @param records パース済みのCSVデータ
    * @returns 抽出されたRecord型オブジェクトの配列
    */
-  public override convert(text: string): ReportRecord[] {
-    const records: ReportRecord[] = [];
-
-    const csv: Record<
+  protected override convertRecords(
+    records: Record<
       | "startDatetime"
       | "endDatetime"
       | "type"
@@ -36,15 +33,11 @@ export class CalendarEventsCsvConverter extends BaseCsvConverter {
       | "status"
       | "location",
       string
-    >[] = parseCsv(
-      text,
-      {
-        skipFirstRow: true,
-        strip: true,
-      },
-    );
+    >[],
+  ): ReportRecord[] {
+    const calendarRecords: ReportRecord[] = [];
 
-    for (const row of csv) {
+    for (const row of records) {
       if (row.status !== "accepted") {
         continue;
       }
@@ -54,7 +47,7 @@ export class CalendarEventsCsvConverter extends BaseCsvConverter {
         const endEpoch = this.parseDateToEpoch(row.endDatetime);
         const duration = endEpoch - startEpoch;
 
-        records.push(
+        calendarRecords.push(
           new CalendarReportRecord(
             startEpoch,
             duration,
@@ -70,6 +63,6 @@ export class CalendarEventsCsvConverter extends BaseCsvConverter {
       }
     }
 
-    return records;
+    return calendarRecords;
   }
 }

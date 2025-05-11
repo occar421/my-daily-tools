@@ -12,25 +12,16 @@ export class SlackMessageCsvConverter extends BaseCsvConverter {
   }
 
   /**
-   * CSVテキストからレコードを作成する
-   * @param text CSVテキスト
+   * パース済みのCSVデータからレコードを作成する
+   * @param records パース済みのCSVデータ
    * @returns 抽出されたRecord型オブジェクトの配列
    */
-  public override convert(text: string): ReportRecord[] {
-    const records: ReportRecord[] = [];
+  protected override convertRecords(
+    records: Record<"datetime" | "channelName" | "sender" | "message", string>[],
+  ): ReportRecord[] {
+    const slackRecords: ReportRecord[] = [];
 
-    const csv: Record<
-      "datetime" | "channelName" | "sender" | "message",
-      string
-    >[] = parseCsv(
-      text,
-      {
-        skipFirstRow: true,
-        strip: true,
-      },
-    );
-
-    for (const row of csv) {
+    for (const row of records) {
       const message = row.message.trim();
 
       // メッセージが空の場合はスキップ
@@ -46,12 +37,12 @@ export class SlackMessageCsvConverter extends BaseCsvConverter {
         );
 
         // ReportRecordオブジェクトを作成して配列に追加
-        records.push(new SlackReportRecord(epoch, row.channelName, message));
+        slackRecords.push(new SlackReportRecord(epoch, row.channelName, message));
       } catch (error) {
         this.logger.error(`日付変換エラー: ${row.datetime}`, error);
       }
     }
 
-    return records;
+    return slackRecords;
   }
 }
