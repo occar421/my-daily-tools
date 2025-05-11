@@ -1,16 +1,14 @@
 import { parse as parseCsv } from "jsr:@std/csv";
-import { getLogger } from "jsr:@std/log";
 import { CalendarReportRecord, ReportRecord } from "./types.ts";
+import { BaseCsvConverter } from "./baseCsvConverter.ts";
 
-export class CalendarEventsCsvConverter {
-  private logger = getLogger();
-
+export class CalendarEventsCsvConverter extends BaseCsvConverter {
   /**
    * CSVテキストからレコードを作成する
    * @param text CSVテキスト
    * @returns 抽出されたRecord型オブジェクトの配列
    */
-  public convert(text: string): ReportRecord[] {
+  public override convert(text: string): ReportRecord[] {
     const records: ReportRecord[] = [];
 
     const csv: Record<
@@ -35,29 +33,25 @@ export class CalendarEventsCsvConverter {
         continue;
       }
 
-      const startDate = new Date(row.startDatetime);
-      const endDate = new Date(row.endDatetime);
+      try {
+        const startEpoch = this.parseDateToEpoch(row.startDatetime);
+        const endEpoch = this.parseDateToEpoch(row.endDatetime);
+        const duration = endEpoch - startEpoch;
 
-      const startEpoch = startDate.getTime();
-      const endEpoch = endDate.getTime();
-
-      if (isNaN(startEpoch) || isNaN(endEpoch)) {
+        records.push(
+          new CalendarReportRecord(
+            startEpoch,
+            duration,
+            row.title,
+            row.calendarName,
+          ),
+        );
+      } catch (error) {
         this.logger.error(
           `無効な日付形式: start=${row.startDatetime}, end=${row.endDatetime}`,
+          error,
         );
-        continue;
       }
-
-      const duration = endEpoch - startEpoch;
-
-      records.push(
-        new CalendarReportRecord(
-          startEpoch,
-          duration,
-          row.title,
-          row.calendarName,
-        ),
-      );
     }
 
     return records;

@@ -1,16 +1,14 @@
 import { parse as parseCsv } from "jsr:@std/csv";
-import { getLogger } from "jsr:@std/log";
 import { BrowserReportRecord } from "./types.ts";
+import { BaseCsvConverter } from "./baseCsvConverter.ts";
 
-export class BrowserHistoryCsvConverter {
-  private logger = getLogger();
-
+export class BrowserHistoryCsvConverter extends BaseCsvConverter {
   /**
    * CSVテキストからレコードを作成する
    * @param text CSVテキスト
    * @returns 抽出されたRecord型オブジェクトの配列
    */
-  public convert(text: string): BrowserReportRecord[] {
+  public override convert(text: string): BrowserReportRecord[] {
     const records: BrowserReportRecord[] = [];
 
     const csv: Record<
