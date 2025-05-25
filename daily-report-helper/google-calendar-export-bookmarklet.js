@@ -115,7 +115,7 @@
 
     if (
       elements.at(0) === "終日" || elements.at(0) === "タスク" ||
-      elements.at(0).startsWith("タスク:")
+      elements.at(0).startsWith("タスク:") || elements.at(0).endsWith("保留中のタスク")
     ) {
       return;
     }
