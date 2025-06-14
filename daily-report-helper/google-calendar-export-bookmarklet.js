@@ -6,7 +6,7 @@
   };
 
   const GOOGLE_CALENDAR_URL_PATTERN =
-    /^https:\/\/calendar\.google\.com\/calendar\/u\/\d\/r\/(\S+)\/\d+\/\d+\/\d+\/?.*$/;
+    /^https:\/\/calendar\.google\.com\/calendar\/u\/\d\/r\/(\S+)/;
 
   /* Note: Skipping Task, all-day schedule, silent mode, and absence */
   const getMessage = async () => {
