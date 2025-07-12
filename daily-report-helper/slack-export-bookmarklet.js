@@ -97,7 +97,7 @@
     const messageExpandSelector =
       ":where(.c-search__expand, .c-rich_text_expand_button)";
     const messageContentSelector =
-      ".c-search_message__content > .c-message__message_blocks";
+      ".c-search_message__content > :where(.c-message__message_blocks,.c-search_message__file)";
     const messageTimestampSelector = ".c-timestamp";
     const messageTimestampAttributeKey = "data-ts";
     const channelNameSelector = ".c-message_group__header_name";
@@ -150,7 +150,7 @@
 
       const messageContent = messageGroup.querySelector(messageContentSelector);
       /* replace emoji to text */
-      const emojiPairs = [...messageContent.querySelectorAll(emojiSelector)].map((emoji) => {
+      const emojiPairs = messageContent ? [...messageContent.querySelectorAll(emojiSelector)].map((emoji) => {
         const emojiText = emoji.getAttribute("data-stringify-emoji");
         if (emojiText) {
           const text = document.createElement("span");
@@ -158,7 +158,7 @@
           emoji.replaceWith(text);
           return [emoji, text];
         }
-      }).filter(Boolean);
+      }).filter(Boolean) : [];
       /* twitterAPP 8:00 PM slack message here ...  */
       const content = messageContent
         ?.textContent.replace(/ （編集済み） /g, "") ?? "";
