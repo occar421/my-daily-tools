@@ -93,7 +93,7 @@
    */
   const createPromiseGetMessages = async (messagePack) => {
     log(">>> createPromiseGetMessages");
-    const messageGroupSelector = ".c-message_group";
+    const messageGroupSelector = ".c-search_message";
     const messageExpandSelector =
       ":where(.c-search__expand, .c-rich_text_expand_button)";
     const messageContentSelector =
