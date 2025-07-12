@@ -263,19 +263,19 @@
    */
   const download = (messagePack) => {
     log(">>> download");
-    const massageAll = "datetime,channelName,sender,message\n" +
+    const messageAll = "datetime,channelName,sender,message\n" +
       messagePack.values.map((row) =>
         row.map((field) => `"${field.replace(/"/g, '""')}"`).join(",")
       ).join("\n");
     log(
       "download | messagePack.messages.length " + messagePack.values.length,
     );
-    log("download | massageAll.length " + massageAll.length);
+    log("download | messageAll.length " + messageAll.length);
 
     const link = document.createElement("a");
     link.style.display = "none";
     link.href = window.URL.createObjectURL(
-      new Blob([massageAll], { type: "text/plain" }),
+      new Blob([messageAll], { type: "text/plain" }),
     );
     link.download = "slack_messages.csv";
     document.body.appendChild(link);
