@@ -100,7 +100,7 @@
       ".c-search_message__content > .c-message__message_blocks";
     const messageTimestampSelector = ".c-timestamp";
     const messageTimestampAttributeKey = "data-ts";
-    const channelNameSelector = ".c-message_group__header";
+    const channelNameSelector = ".c-message_group__header_name";
     const messageSenderSelector = ".c-message__sender_button";
 
     messagePack.pushed = false;
