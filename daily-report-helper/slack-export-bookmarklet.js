@@ -102,6 +102,7 @@
     const messageTimestampAttributeKey = "data-ts";
     const channelNameSelector = ".c-message_group__header_name";
     const messageSenderSelector = ".c-message__sender_button";
+    const emojiSelector = ":where(img.c-emoji, .c-emoji > img)";
 
     messagePack.pushed = false;
     let messageGroups = document.querySelectorAll(messageGroupSelector);
@@ -146,8 +147,20 @@
       /* twitter */
       const sender =
         messageGroup.querySelector(messageSenderSelector).textContent;
+
+      const messageContent = messageGroup.querySelector(messageContentSelector);
+      /* replace emoji to text */
+      const emojiPairs = [...messageContent.querySelectorAll(emojiSelector)].map((emoji) => {
+        const emojiText = emoji.getAttribute("data-stringify-emoji");
+        if (emojiText) {
+          const text = document.createElement("span");
+          text.textContent = emojiText;
+          emoji.replaceWith(text);
+          return [emoji, text];
+        }
+      }).filter(Boolean);
       /* twitterAPP 8:00 PM slack message here ...  */
-      const content = messageGroup.querySelector(messageContentSelector)
+      const content = messageContent
         ?.textContent.replace(/ （編集済み） /g, "") ?? "";
 
       const row = [
@@ -172,6 +185,10 @@
       messagePack.set.add(timeAndMessage);
       messagePack.pushed = true;
       messagePack.values.push(row);
+
+      emojiPairs.forEach(([emoji, text]) => {
+        text.replaceWith(emoji);
+      });
 
       messageGroup.scrollIntoView();
     }
